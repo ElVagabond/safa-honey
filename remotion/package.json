@@ -1,0 +1,21 @@
+{
+  "name": "safa-honey-film",
+  "private": true,
+  "description": "Remotion project that renders the parallax brand film used on the Safa Honey storefront",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render HoneyFilm ../assets/film.mp4 --codec=h264 --crf=30 --muted --browser-executable=/opt/pw-browsers/chromium",
+    "poster": "remotion still HoneyFilm ../assets/film-poster.jpg --frame=200 --image-format=jpeg --jpeg-quality=70 --scale=0.5 --browser-executable=/opt/pw-browsers/chromium"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.541",
+    "@remotion/google-fonts": "^4.0.541",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.541"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}

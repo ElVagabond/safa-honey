@@ -176,11 +176,34 @@ canvas.classList.add('on');
 })();
 </script>''' + html[e:]
 
+# ---------------- GSAP parallax + Remotion brand film ----------------
+# The JS scroll handler for the story photo is replaced by a ScrollTrigger tween in motion.js
+rep("""addEventListener('scroll',()=>{const r=sv.parentNode.getBoundingClientRect(),p=(r.top+r.height/2-innerHeight/2)/innerHeight;sv.style.transform=`scale(1.12) translateY(${p*-40}px)`},{passive:true});
+""", "")
+rep("const sv=document.querySelector('.story .visual img');\n", "")
+rep("</style>", open(D + 'motion.css', encoding='utf-8').read() + "</style>")
+rep("<!-- STORY -->", """<!-- FILM (rendered with Remotion: see /remotion) -->
+<section class="film" id="film" aria-label="Brand film">
+  <div class="film-pin">
+    <p class="film-label">Hive to jar · a short film</p>
+    <div class="film-frame">
+      <video src="assets/film.mp4" poster="__IMG_filmposter__" muted loop playsinline preload="metadata" aria-label="Safa honey jars floating over a honeycomb wall with the words Nothing added, nothing taken away"></video>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->""")
+rep("</body>", """<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+""" + open(D + 'motion.js', encoding='utf-8').read() + """</script>
+</body>""")
+
 # ---------------- embed images ----------------
-mime = {'webp': 'image/webp', 'png': 'image/png'}
+mime = {'webp': 'image/webp', 'png': 'image/png', 'jpg': 'image/jpeg'}
 files = {'logo': 'logo.png', 'forest': 'forest.webp', 'acacia': 'acacia.webp', 'sidr': 'sidr.webp', 'neem': 'neem.webp',
          'wild': 'wild.webp', 'wild3k': 'wild3k.webp', 'acv': 'acv.webp', 'lifestyle': 'lifestyle.webp',
-         'story': 'story.webp', 'ginger': 'ginger.webp'}
+         'story': 'story.webp', 'ginger': 'ginger.webp', 'filmposter': 'film-poster.jpg'}
 for k, f in files.items():
     ph = f'__IMG_{k}__'
     if ph not in html:
