@@ -1,4 +1,6 @@
-export const asset = (file: string) => import.meta.env.BASE_URL + file;
+/* The single-file build embeds the photos as data URIs in window.__ASSETS */
+declare global { interface Window { __ASSETS?: Record<string, string> } }
+export const asset = (file: string) => window.__ASSETS?.[file] ?? import.meta.env.BASE_URL + file;
 
 export type Product = {
   n: string;
