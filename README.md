@@ -1,5 +1,26 @@
 # Safa Honey — storefront concept
 
+## React version (`web/`)
+
+The page rebuilt as a React app with Vite:
+
+- **Framer Motion** handles state and entrance animation: the loader count-up and exit, the hero slider (jar swap, word swap, background tint, slide progress), the menu's circular reveal, word-by-word headings, fade-up reveals, the spring 3D card tilt, the animated product filter (shared-layout pill, cards re-flowing), the clip-path story reveal, the counters, the cursor and the toast.
+- **GSAP ScrollTrigger** handles everything tied to scroll position (`web/src/useParallax.ts`): the hero's depth layers, floating jars, staggered production steps, the pinned film reveal, the story photo pan, journal photos, the bee, the footer wordmark and the marquee lean.
+- three.js draws the floating honeycomb cells in the hero, loaded as a separate chunk.
+
+Each element is driven by only one library: GSAP moves an outer wrapper or a CSS variable wherever Framer Motion already animates the element. Both are turned off for visitors who prefer reduced motion.
+
+```
+cd web
+npm install
+npm run dev      # local dev server
+npm run build    # static site in web/dist
+```
+
+Photos, the logo and the film come from `assets/` (Vite's public folder).
+
+## Static version
+
 A single-page storefront concept for Safa Honey. Open `index.html` in a browser; all images are embedded, so it works offline (fonts, three.js and GSAP load from CDNs; the brand film loads from `assets/film.mp4`).
 
 - `index.html` — the built page, with images inlined as data URIs
