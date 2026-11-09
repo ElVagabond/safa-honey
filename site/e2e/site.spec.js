@@ -11,7 +11,7 @@ test.afterEach(() => expect(errors, 'no page errors').toEqual([]))
 
 // Wait for the loader curtain to finish and leave the DOM.
 async function open(page, hash = '') {
-  await page.goto('/' + hash)
+  await page.goto('./' + hash)
   await expect(page.locator('.loader')).toHaveCount(0, { timeout: 10_000 })
 }
 
@@ -73,6 +73,16 @@ test('menu opens, navigates, and back returns home', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Raw Acacia Honey')
   await page.goBack()
   await expect(page.locator('.cjar')).toHaveCount(7, { timeout: 5_000 })
+})
+
+test('pressing Back during the page transition still lands on the right page', async ({ page }) => {
+  await open(page)
+  await page.locator('.cjar').nth(2).evaluate(b => b.click())
+  await page.waitForTimeout(300) // curtain is still rising
+  await page.goBack()
+  await expect(page).not.toHaveURL(/#premium-sidr-honey/)
+  await expect(page.locator('.cjar')).toHaveCount(7, { timeout: 8_000 })
+  await expect(page.locator('.ptitle')).toHaveCount(0)
 })
 
 test('unknown hash falls back to the home page', async ({ page }) => {

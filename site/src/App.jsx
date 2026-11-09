@@ -79,6 +79,9 @@ export default function App() {
     setCovered(false)
     await animateCover(cover.current, { clipPath: ['inset(0 0 0% 0)', 'inset(0 0 100% 0)'] }, { duration: 0.9, ease: EASE })
     busy.current = false
+    // the visitor may have pressed Back/Forward while the curtain was moving: catch up with the URL
+    const latest = parse()
+    if (latest !== next) swap(latest)
   }, [animateCover, cover])
 
   useEffect(() => {
