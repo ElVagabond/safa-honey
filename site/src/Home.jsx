@@ -70,7 +70,7 @@ function Hero({ ready }) {
   useMotionValueEvent(pos, 'change', v => setActive(((Math.round(v) % n) + n) % n))
   const [spacing, setSpacing] = useState(30)
   useEffect(() => {
-    const f = () => setSpacing(innerWidth < 720 ? 64 : innerWidth < 1100 ? 40 : 30)
+    const f = () => setSpacing(innerWidth < 720 ? 66 : innerWidth < 1100 ? 40 : 30)
     f(); addEventListener('resize', f); return () => removeEventListener('resize', f)
   }, [])
 

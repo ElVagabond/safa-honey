@@ -132,6 +132,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pcard-meta { position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 1; display: flex; flex-direction: column; text-align: center }
 .pcard-meta b { font-family: var(--serif); font-weight: 400; font-size: 18px; color: var(--wine) }
 .pcard-meta small { font-size: 12px; color: var(--ink-soft) }
+.swipe-hint { display: none; margin-top: 6px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--flame) }
 .pcard:hover { background: var(--tint); transform: rotate(-2.5deg) translateY(-6px); border-radius: 18px }
 .pcard:hover img { transform: translateY(-6%) rotate(6deg) scale(1.06) }
 .pcard:hover .cell { translate: -50% 0 }
@@ -191,18 +192,30 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 @media (max-width: 600px) {
   .top-left .chip + .chip { display: none }
   .brand span { font-size: 14px }
-  .cell { top: 40vh; width: 1100px }
+  /* hero: one jar in focus, neighbours peeking in at the edges, name centred under it */
+  .cell { top: 44vh; width: 1100px }
   .rim-text { font-size: 110px }
-  .cjar img { height: 34vh }
-  .hero-name { display: none }
+  .cjar { top: 47% }
+  .cjar img { height: 29vh; max-width: 54vw; object-fit: contain }
+  .hero-foot { flex-direction: column; align-items: center; gap: 14px }
+  .hero-name { position: static; align-items: center; text-align: center; font-size: 22px; line-height: 1.15 }
   .side-labels { font-size: 14px }
   .steps { grid-template-columns: 1fr }
   .stitle h2 { font-size: 12vw }
   .ptitle { font-size: 13vw }
   .line { white-space: normal; text-align: center }
-  .pcard { aspect-ratio: 3/4 }
-  .pcard img { height: 48%; margin-top: -18% }
-  .pcard-meta b { font-size: 15px; line-height: 1.15 }
+  /* product grid becomes a swipeable row of large cards */
+  .pgrid { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+    margin-inline: calc(-1 * var(--gut)); padding: 4px var(--gut) 18px; scroll-padding-inline: var(--gut); scrollbar-width: none }
+  .pgrid::-webkit-scrollbar { display: none }
+  .pgrid > div { flex: 0 0 72vw; scroll-snap-align: start }
+  .pcard { aspect-ratio: auto; height: min(112vw, 460px); justify-content: flex-start; padding: 12% 16px 0; gap: 18px }
+  .pcard img { height: 62%; max-width: 86% }
+  .pcard-meta { position: static }
+  .pcard-meta b { font-size: 20px; line-height: 1.15 }
+  .pcard-meta small { font-size: 13px; margin-top: 4px }
+  .pcard:hover { transform: none }
+  .swipe-hint { display: block }
   .giant em { padding-left: 0; text-align: center }
   .step:nth-child(even) { margin-top: 0 }
   .band { height: 90vh }
@@ -212,7 +225,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .pjar img { height: 52vh }
   .phero .side-labels { top: auto; bottom: 40vh }
   .slide { width: 78vw }
-  .giant em { padding-left: 14vw }
   .foot-cols { grid-template-columns: 1fr }
   .menu-foot { flex-direction: column }
   .menu-foot p:last-child { text-align: left }

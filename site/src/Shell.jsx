@@ -61,18 +61,21 @@ export function Menu({ open, close }) {
 // Grid of product cards; hovering tilts the jar and drops a coloured cell from the top.
 export function ProductGrid({ items }) {
   return (
-    <div className="pgrid">
-      {items.map((p, i) => (
-        <motion.div key={p.slug} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5%' }}
-          transition={{ duration: 1, ease: EASE_OUT, delay: (i % 4) * 0.08 }}>
-          <Link to={p.slug} className="pcard" cursor="Discover" style={{ '--tint': p.tint, '--deep': p.deep }}>
-            <span className="cell" aria-hidden="true" />
-            <img src={p.img} alt="" loading="lazy" />
-            <span className="pcard-meta"><b>{p.n}</b><small>{p.cat} · ₹{p.price}</small></span>
-          </Link>
-        </motion.div>
-      ))}
-    </div>
+    <>
+      <div className="pgrid">
+        {items.map((p, i) => (
+          <motion.div key={p.slug} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5%' }}
+            transition={{ duration: 1, ease: EASE_OUT, delay: (i % 4) * 0.08 }}>
+            <Link to={p.slug} className="pcard" cursor="Discover" style={{ '--tint': p.tint, '--deep': p.deep }}>
+              <span className="cell" aria-hidden="true" />
+              <img src={p.img} alt="" loading="lazy" />
+              <span className="pcard-meta"><b>{p.n}</b><small>{p.cat} · ₹{p.price}</small></span>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
+      <p className="swipe-hint" aria-hidden="true">Swipe to see more →</p>
+    </>
   )
 }
 

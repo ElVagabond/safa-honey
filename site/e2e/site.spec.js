@@ -23,10 +23,9 @@ test('home shows the hero carousel with every jar', async ({ page }) => {
   await expect(page.locator('.hero-foot')).toContainText('Scroll to discover')
 })
 
-test('scrolling turns the carousel to the next honey', async ({ page, isMobile }) => {
+test('scrolling turns the carousel to the next honey', async ({ page }) => {
   await open(page)
   const name = page.locator('.hero-name')
-  test.skip(isMobile, 'name label is hidden on phones')
   await expect(name).toContainText('Raw Forest Honey')
   for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 150); await page.waitForTimeout(60) }
   await expect(name).not.toContainText('Raw Forest Honey', { timeout: 5_000 })
@@ -117,4 +116,16 @@ test.describe('reduced motion', () => {
     await page.locator('#pantry').scrollIntoViewIfNeeded()
     await expect(page.locator('#pantry .pcard')).toHaveCount(7)
   })
+})
+
+test('on phones the pantry is a swipeable row of cards', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'phone layout only')
+  await open(page)
+  const row = page.locator('#pantry .pgrid')
+  await row.scrollIntoViewIfNeeded()
+  const { scrollW, clientW } = await row.evaluate(el => ({ scrollW: el.scrollWidth, clientW: el.clientWidth }))
+  expect(scrollW).toBeGreaterThan(clientW * 3)
+  await row.evaluate(el => el.scrollBy({ left: el.clientWidth, behavior: 'instant' }))
+  await expect.poll(() => row.evaluate(el => el.scrollLeft)).toBeGreaterThan(100)
+  await expect(page.locator('#pantry .swipe-hint')).toBeVisible()
 })
