@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safa Honey — Raw honey from the forests of India</title>
+<meta name="theme-color" content="#fdf3e4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#fdf3e4;
+  --cream-2:#f7e6c8;
+  --ink:#2b1a0e;
+  --ink-soft:#6b5443;
+  --honey:#e8a317;
+  --amber:#c4720d;
+  --forest:#2f4a2c;
+  --sage:#9fb38a;
+  --rose:#e9a48f;
+  --line:rgba(43,26,14,.15);
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--cream);padding:8px 14px;border-radius:99px;z-index:200}
+.skip:focus{left:16px}
+.wrap{width:min(1280px,100% - 32px);margin-inline:auto}
+
+/* ---------- Loader ---------- */
+.loader{position:fixed;inset:0;background:var(--honey);z-index:300;display:grid;place-items:center;transition:transform 1s cubic-bezier(.77,0,.18,1)}
+.loader.done{transform:translateY(-100%)}
+.loader .pct{font-family:var(--serif);font-weight:300;font-size:clamp(80px,18vw,220px);line-height:1;color:var(--ink)}
+.loader .drip{position:absolute;bottom:-60px;left:0;width:100%;height:80px}
+
+/* ---------- Header ---------- */
+header.top{position:fixed;inset:0 0 auto 0;z-index:100;padding:18px 0;transition:background .4s,padding .4s}
+header.top.scrolled{background:rgba(253,243,228,.9);backdrop-filter:blur(10px);padding:10px 0;border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:700;font-size:26px;letter-spacing:-.02em}
+.logo svg{width:34px;height:34px}
+.top-right{display:flex;align-items:center;gap:10px}
+.lang{font-size:13px;font-weight:500;letter-spacing:.08em;display:flex;gap:6px}
+.lang span{opacity:.4}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--ink);border-radius:99px;padding:9px 18px;font-weight:500;font-size:15px;transition:background .3s,color .3s}
+.pill:hover{background:var(--ink);color:var(--cream)}
+.pill.solid{background:var(--ink);color:var(--cream)}
+.pill.solid:hover{background:var(--amber);border-color:var(--amber)}
+.menu-btn{display:flex;align-items:center;gap:10px}
+.menu-btn .bars{width:22px;display:grid;gap:5px}
+.menu-btn .bars i{height:2px;background:currentColor;border-radius:2px;transition:transform .4s}
+body.menu-open .menu-btn .bars i:first-child{transform:translateY(3.5px) rotate(45deg)}
+body.menu-open .menu-btn .bars i:last-child{transform:translateY(-3.5px) rotate(-45deg)}
+.cart-count{background:var(--honey);color:var(--ink);border-radius:99px;font-size:12px;min-width:20px;height:20px;display:grid;place-items:center;font-weight:700}
+
+/* ---------- Menu overlay ---------- */
+.menu{position:fixed;inset:0;z-index:90;background:var(--forest);color:var(--cream);clip-path:circle(0% at calc(100% - 60px) 40px);transition:clip-path .9s cubic-bezier(.77,0,.18,1);display:flex;align-items:center}
+body.menu-open .menu{clip-path:circle(150% at calc(100% - 60px) 40px)}
+body.menu-open header.top{color:var(--cream);background:transparent;border-color:transparent}
+.menu .wrap{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:end}
+.menu nav a{display:block;font-family:var(--serif);font-size:clamp(44px,8vw,104px);line-height:1.02;font-weight:300;letter-spacing:-.03em;transition:color .3s,padding .4s}
+.menu nav a:hover{color:var(--honey);padding-left:18px}
+.menu nav a em{font-size:.3em;font-style:normal;font-family:var(--sans);vertical-align:top;opacity:.6;margin-right:12px}
+.menu .sub{display:grid;gap:22px;font-size:15px}
+.menu .sub h4{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55;font-weight:500;margin-bottom:6px}
+.menu .sub a{display:block;padding:2px 0}
+.menu .sub a:hover{color:var(--honey)}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:120px 0 80px;transition:background-color 1.2s ease}
+.hero h1{font-family:var(--serif);font-weight:300;font-size:clamp(48px,9.2vw,148px);line-height:.95;letter-spacing:-.045em;max-width:12ch;position:relative;z-index:3}
+.hero h1 em{font-style:italic;font-weight:400}
+.hero h1 .swap{display:inline-block;position:relative;color:var(--amber);transition:color 1s}
+.hero h1 .swap span{display:inline-block;transition:transform .7s cubic-bezier(.77,0,.18,1),opacity .5s}
+.hero h1 .swap span.out{transform:translateY(-40%);opacity:0}
+.hero h1 .swap span.in{transform:translateY(40%);opacity:0}
+.hero p.lede{max-width:420px;margin-top:28px;font-size:18px;color:var(--ink-soft);position:relative;z-index:3}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px;position:relative;z-index:3}
+.scene{position:absolute;right:-4%;bottom:0;width:min(62vw,860px);height:100%;z-index:1;pointer-events:none}
+.scene svg{position:absolute;inset:auto 0 0 auto;width:100%;height:auto;opacity:0;transform:translateY(40px) scale(.96);transition:opacity 1s,transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.scene svg.active{opacity:1;transform:none}
+.hero-foot{position:absolute;left:0;right:0;bottom:28px;z-index:4}
+.hero-foot .wrap{display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
+.dots{display:flex;gap:10px;align-items:center}
+.dots button{width:44px;height:3px;background:var(--line);border-radius:3px;position:relative;overflow:hidden}
+.dots button i{position:absolute;inset:0;background:var(--ink);transform:scaleX(0);transform-origin:left}
+.dots button.on i{animation:fill 6s linear forwards}
+@keyframes fill{to{transform:scaleX(1)}}
+.dots small{font-size:13px;margin-left:8px;letter-spacing:.06em}
+.scroll-cue{display:flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.scroll-cue .line{width:1px;height:46px;background:var(--line);position:relative;overflow:hidden}
+.scroll-cue .line::after{content:"";position:absolute;left:0;top:-50%;width:1px;height:50%;background:var(--ink);animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{to{top:100%}}
+
+/* Rotating badge */
+.badge{position:absolute;z-index:4;width:150px;height:150px;right:max(4vw,16px);top:120px}
+.badge .ring{width:100%;height:100%;animation:spin 18s linear infinite}
+.badge .core{position:absolute;inset:34%;background:var(--ink);border-radius:50%;display:grid;place-items:center}
+.badge .core svg{width:60%;fill:var(--honey)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- Marquee ---------- */
+.marquee{background:var(--ink);color:var(--cream);overflow:hidden;padding:18px 0;border-block:1px solid var(--ink)}
+.marquee .track{display:flex;gap:48px;width:max-content;animation:mq 32s linear infinite;font-family:var(--serif);font-size:clamp(22px,3vw,34px);font-style:italic;font-weight:300}
+.marquee .track span{display:flex;align-items:center;gap:48px;white-space:nowrap}
+.marquee .track span::after{content:"";width:14px;height:16px;background:var(--honey);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ---------- Section heads ---------- */
+section{position:relative}
+.sec{padding:clamp(80px,12vw,160px) 0}
+.eyebrow{font-size:13px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;display:flex;align-items:center;gap:10px;color:var(--ink-soft)}
+.eyebrow::before{content:"";width:28px;height:1.5px;background:currentColor}
+.h2{font-family:var(--serif);font-weight:300;font-size:clamp(40px,6.4vw,96px);line-height:.98;letter-spacing:-.04em;margin-top:18px}
+.h2 em{font-style:italic;font-weight:400;color:var(--amber)}
+.head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap;margin-bottom:56px}
+.head-row p{max-width:380px;color:var(--ink-soft)}
+
+/* ---------- Pantry grid ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.filters button{border:1.5px solid var(--line);border-radius:99px;padding:8px 16px;font-size:14px;font-weight:500;transition:.3s}
+.filters button.on,.filters button:hover{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.card{grid-column:span 4;border-radius:28px;overflow:hidden;position:relative;background:var(--c,#f3d48a);display:flex;flex-direction:column;min-height:520px;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.card.wide{grid-column:span 8}
+.card .art{flex:1;display:grid;place-items:center;padding:30px 20px 0;position:relative}
+.card .art svg.jar{height:300px;width:auto;transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.card:hover .art svg.jar{transform:translateY(-14px) rotate(-4deg)}
+.card .blob{position:absolute;width:70%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.28);transition:transform 1s}
+.card:hover .blob{transform:scale(1.15)}
+.card .info{padding:22px 26px 26px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;position:relative}
+.card h3{font-family:var(--serif);font-weight:500;font-size:28px;line-height:1.05;letter-spacing:-.02em}
+.card .meta{font-size:14px;opacity:.75;margin-top:6px}
+.price{text-align:right;white-space:nowrap}
+.price b{font-family:var(--serif);font-size:24px;font-weight:500;display:block}
+.price s{font-size:14px;opacity:.55}
+.tag{position:absolute;top:20px;left:20px;z-index:2;background:var(--ink);color:var(--cream);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:99px;padding:6px 12px}
+.tag.sale{background:var(--cream);color:var(--ink)}
+.add{position:absolute;top:18px;right:18px;z-index:2;width:48px;height:48px;border-radius:50%;background:var(--cream);display:grid;place-items:center;font-size:24px;transform:scale(0);transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.card:hover .add,.card:focus-within .add{transform:scale(1)}
+.add:hover{background:var(--ink);color:var(--cream)}
+.card.hide{display:none}
+.card.dark{color:var(--cream)}
+.card.dark .add{background:var(--honey);color:var(--ink)}
+
+/* ---------- Production ---------- */
+.production{background:var(--forest);color:var(--cream);border-radius:48px 48px 0 0;overflow:hidden}
+.production .eyebrow{color:var(--sage)}
+.production .h2 em{color:var(--honey)}
+.production .head-row p{color:rgba(253,243,228,.7)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(253,243,228,.2)}
+.step{padding:36px 28px 40px 0;border-right:1px solid rgba(253,243,228,.2);position:relative}
+.step:last-child{border-right:0}
+.step + .step{padding-left:28px}
+.step .n{font-family:var(--serif);font-size:88px;font-weight:300;line-height:1;color:var(--honey);letter-spacing:-.04em}
+.step h3{font-family:var(--serif);font-weight:500;font-size:26px;margin:20px 0 10px}
+.step p{color:rgba(253,243,228,.72);font-size:16px}
+.step svg.ic{width:56px;height:56px;margin-top:28px;stroke:var(--sage);fill:none;stroke-width:1.5}
+.comb{position:absolute;right:-120px;top:-60px;width:520px;opacity:.08;pointer-events:none}
+
+/* ---------- Story / Experience ---------- */
+.story{background:var(--cream-2)}
+.story .split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,96px);align-items:center}
+.story .visual{aspect-ratio:4/5;border-radius:240px 240px 32px 32px;background:var(--honey);position:relative;overflow:hidden}
+.story .visual svg{position:absolute;inset:0;width:100%;height:100%}
+.story .copy p{color:var(--ink-soft);font-size:18px;margin-top:22px;max-width:520px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px;border-top:1px solid var(--line);padding-top:28px}
+.stats b{font-family:var(--serif);font-weight:300;font-size:clamp(40px,5vw,64px);line-height:1;display:block;letter-spacing:-.03em}
+.stats span{font-size:14px;color:var(--ink-soft)}
+
+/* ---------- Trade ---------- */
+.trade-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.trade{border:1.5px solid var(--ink);border-radius:28px;padding:34px 30px;display:flex;flex-direction:column;gap:14px;min-height:300px;transition:background .4s,color .4s}
+.trade:hover{background:var(--ink);color:var(--cream)}
+.trade .k{font-size:13px;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+.trade h3{font-family:var(--serif);font-weight:400;font-size:34px;line-height:1.05;letter-spacing:-.02em}
+.trade p{opacity:.75;font-size:16px;flex:1}
+.trade .arrow{font-size:28px;align-self:flex-end;transition:transform .4s}
+.trade:hover .arrow{transform:translateX(8px) rotate(-45deg)}
+
+/* ---------- Journal ---------- */
+.journal{border-top:1px solid var(--line)}
+.posts{display:grid;gap:0}
+.post{display:grid;grid-template-columns:120px 1fr auto;gap:24px;align-items:center;padding:28px 0;border-bottom:1px solid var(--line);position:relative;transition:padding .4s}
+.post:hover{padding-left:16px}
+.post time{font-size:14px;color:var(--ink-soft)}
+.post h3{font-family:var(--serif);font-weight:400;font-size:clamp(22px,2.6vw,34px);letter-spacing:-.02em;line-height:1.1}
+.post .cat{font-size:13px;border:1px solid var(--line);border-radius:99px;padding:5px 12px;white-space:nowrap}
+
+/* ---------- Newsletter ---------- */
+.news{background:var(--honey);border-radius:48px;margin:0 16px;padding:clamp(56px,8vw,110px) 0;overflow:hidden;position:relative}
+.news .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center;position:relative;z-index:2}
+.news .h2 em{color:var(--ink)}
+.news form{display:flex;background:var(--cream);border-radius:99px;padding:6px;gap:6px}
+.news input{flex:1;min-width:0;border:0;background:transparent;padding:12px 18px;font:inherit;outline:none;color:var(--ink)}
+.news small{display:block;margin-top:14px;font-size:14px}
+.news .bee{position:absolute;right:6%;top:18%;width:90px;z-index:1;animation:fly 7s ease-in-out infinite}
+@keyframes fly{0%,100%{transform:translate(0,0) rotate(-6deg)}50%{transform:translate(-40px,24px) rotate(8deg)}}
+
+/* ---------- Footer ---------- */
+footer{padding:100px 0 32px}
+.foot-big{font-family:var(--serif);font-weight:300;font-size:clamp(64px,17vw,260px);line-height:.85;letter-spacing:-.06em;margin-bottom:56px}
+.foot-big em{font-style:italic;color:var(--amber)}
+.foot-cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;border-top:1px solid var(--line);padding-top:36px;font-size:15px}
+.foot-cols h4{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:500;margin-bottom:14px}
+.foot-cols a{display:block;padding:3px 0}
+.foot-cols a:hover{color:var(--amber)}
+.legal{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:48px;font-size:13px;color:var(--ink-soft)}
+
+/* ---------- Cursor-follow bee (desktop) ---------- */
+.cursor{position:fixed;left:0;top:0;width:14px;height:14px;border-radius:50%;background:var(--amber);pointer-events:none;z-index:400;transform:translate(-50%,-50%);transition:width .3s,height .3s,background .3s;mix-blend-mode:multiply}
+.cursor.big{width:72px;height:72px;background:rgba(232,163,23,.35)}
+@media (hover:none){.cursor{display:none}}
+
+/* ---------- Reveal ---------- */
+.rv{opacity:0;transform:translateY(40px);transition:opacity 1s,transform 1s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.split-words .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .04em .14em;margin:0 -.04em -.14em}
+.split-words .w > span{display:inline-block;transform:translateY(105%);transition:transform 1s cubic-bezier(.2,.7,.2,1)}
+.split-words.in .w > span{transform:none}
+
+/* ---------- Toast ---------- */
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);background:var(--ink);color:var(--cream);padding:14px 22px;border-radius:99px;z-index:150;font-size:15px;transition:transform .5s cubic-bezier(.2,.7,.2,1);max-width:calc(100% - 32px)}
+.toast.show{transform:translate(-50%,0)}
+
+/* ---------- 3D ---------- */
+.gl{position:absolute;inset:0;width:100%;height:100%;z-index:1;opacity:0;transition:opacity 1.6s ease .4s}
+.gl.on{opacity:1}
+.card{will-change:transform}
+.card .glare{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.45),transparent 55%);mix-blend-mode:soft-light}
+.card:hover .glare{opacity:1}
+.card .art svg.jar{transform:translate(var(--tx,0px),var(--ty,0px));filter:drop-shadow(0 30px 30px rgba(43,26,14,.25))}
+.card:hover .art svg.jar{transform:translate(var(--tx,0px),calc(var(--ty,0px) - 14px)) rotate(-4deg)}
+.card .blob{transform:translate(calc(var(--tx,0px) * -.6),calc(var(--ty,0px) * -.6))}
+.card:hover .blob{transform:translate(calc(var(--tx,0px) * -.6),calc(var(--ty,0px) * -.6)) scale(1.15)}
+.story .visual svg{transition:transform .2s linear}
+@media (max-width:720px){.hero{justify-content:flex-start;padding-top:110px}}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1000px){
+  .card,.card.wide{grid-column:span 6}
+  .steps{grid-template-columns:1fr 1fr}
+  .step:nth-child(2){border-right:0}
+  .step:nth-child(3){padding-left:0}
+  .step:nth-child(n+3){border-top:1px solid rgba(253,243,228,.2)}
+  .trade-grid{grid-template-columns:1fr}
+  .trade{min-height:0}
+  .foot-cols{grid-template-columns:1fr 1fr}
+  .menu .wrap{grid-template-columns:1fr}
+  .menu .sub{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  body{font-size:16px}
+  .lang,.top-right .pill:not(.menu-btn){display:none}
+  .scene{width:120vw;right:-30vw;opacity:.55}
+  .badge{width:104px;height:104px;top:auto;bottom:96px;right:16px}
+  .card,.card.wide{grid-column:span 12;min-height:460px}
+  .card .art svg.jar{height:240px}
+  .add{transform:scale(1)}
+  .steps{grid-template-columns:1fr}
+  .step,.step + .step{padding:28px 0;border-right:0;border-top:1px solid rgba(253,243,228,.2)}
+  .story .split,.news .wrap{grid-template-columns:1fr}
+  .story .visual{max-width:420px}
+  .stats{grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .post{grid-template-columns:1fr;gap:8px}
+  .post .cat{justify-self:start}
+  .news{margin:0 8px;border-radius:32px}
+  .news .bee{width:60px;top:6%}
+  .production{border-radius:32px 32px 0 0}
+  .hero-foot .scroll-cue{display:none}
+  .foot-cols{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .rv,.split-words .w > span{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Loader -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="pct"><span id="pct">0</span>%</div>
+</div>
+
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+
+<!-- Header -->
+<header class="top" id="top">
+  <div class="wrap">
+    <a href="#" class="logo" aria-label="Safa Honey home">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3l14.7 8.5v17L20 37 5.3 28.5v-17z" fill="#e8a317"/><path d="M20 11c-4 4.5-6 8-6 11a6 6 0 0012 0c0-3-2-6.5-6-11z" fill="#2b1a0e"/></svg>
+      Safa
+    </a>
+    <div class="top-right">
+      <div class="lang"><a href="#">EN</a><span>/</span><a href="#" style="opacity:.4">हि</a></div>
+      <a href="#pantry" class="pill">Shop <span class="cart-count" id="cartCount">0</span></a>
+      <button class="pill menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><span class="bars"><i></i><i></i></span><span id="menuLabel">Menu</span></button>
+    </div>
+  </div>
+</header>
+
+<!-- Menu overlay -->
+<div class="menu" id="menu" aria-hidden="true">
+  <div class="wrap">
+    <nav aria-label="Main">
+      <a href="#pantry"><em>01</em>The Pantry</a>
+      <a href="#production"><em>02</em>Hive to Jar</a>
+      <a href="#story"><em>03</em>Our Story</a>
+      <a href="#trade"><em>04</em>For Business</a>
+      <a href="#contact"><em>05</em>Contact</a>
+    </nav>
+    <div class="sub">
+      <div><h4>Shop</h4><a href="#pantry">Raw Honey</a><a href="#pantry">Herbal Honey</a><a href="#pantry">Black Seed Oil</a><a href="#pantry">Vinegar</a></div>
+      <div><h4>About</h4><a href="#">Quality Assurance</a><a href="#">Suppliers</a><a href="#">Sustainability</a><a href="#journal">Journal</a></div>
+      <div><h4>Say hello</h4><a href="mailto:info@safahoney.com">info@safahoney.com</a><a href="tel:+919108084444">+91 91080 84444</a></div>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+
+<!-- HERO -->
+<section class="hero" id="hero" style="background-color:#fdf3e4">
+  <div class="wrap">
+    <p class="eyebrow">Raw honey · Bangalore, India</p>
+    <h1 style="margin-top:18px">Honey, the way the <em class="swap" id="swap"><span>forest</span></em> made it.</h1>
+    <p class="lede">Raw, unheated and unfiltered honey gathered from wild forests and blossoming orchards across India — jarred in Bangalore, nothing added.</p>
+    <div class="ctas">
+      <a href="#pantry" class="pill solid">Explore the pantry →</a>
+      <a href="#production" class="pill">How we make it</a>
+    </div>
+  </div>
+
+  <canvas id="gl" class="gl" aria-hidden="true"></canvas>
+
+  <!-- Rotating badge -->
+  <div class="badge" aria-hidden="true">
+    <svg class="ring" viewBox="0 0 200 200">
+      <defs><path id="circ" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs>
+      <circle cx="100" cy="100" r="99" fill="#fdf3e4" stroke="#2b1a0e" stroke-width="1.5"/>
+      <text font-family="DM Sans" font-size="15.5" font-weight="700" letter-spacing="4.2" fill="#2b1a0e"><textPath href="#circ">RAW · UNHEATED · UNFILTERED · PURE · </textPath></text>
+    </svg>
+    <div class="core"><svg viewBox="0 0 24 24"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/></svg></div>
+  </div>
+
+  <div class="hero-foot">
+    <div class="wrap">
+      <div class="dots" id="dots" role="tablist" aria-label="Hero slides">
+        <button class="on" aria-label="Forest honey"><i></i></button>
+        <button aria-label="Acacia honey"><i></i></button>
+        <button aria-label="Sidr honey"><i></i></button>
+        <small id="slideNum">01 / 03</small>
+      </div>
+      <a href="#pantry" class="scroll-cue"><span class="line"></span>Scroll to discover</a>
+    </div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span>Raw Forest Honey</span><span>Neem Blossom</span><span>Premium Sidr</span><span>Raw Acacia</span><span>Wild Honey</span><span>Cold-pressed Black Seed Oil</span>
+    <span>Raw Forest Honey</span><span>Neem Blossom</span><span>Premium Sidr</span><span>Raw Acacia</span><span>Wild Honey</span><span>Cold-pressed Black Seed Oil</span>
+  </div>
+</div>
+
+<!-- PANTRY -->
+<section class="sec" id="pantry">
+  <div class="wrap">
+    <div class="head-row">
+      <div>
+        <p class="eyebrow rv">01 — The Pantry</p>
+        <h2 class="h2 split-words">Every jar has <em>a landscape</em> inside.</h2>
+      </div>
+      <p class="rv">Each honey tastes of the flowers the bees visited — dark and woody from the forest, light and floral from acacia, rich and buttery from sidr.</p>
+    </div>
+    <div class="filters rv" role="group" aria-label="Filter products">
+      <button class="on" data-f="all">All</button>
+      <button data-f="raw">Raw honey</button>
+      <button data-f="herbal">Herbal honey</button>
+      <button data-f="pantry">Oils &amp; vinegar</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<!-- PRODUCTION -->
+<section class="sec production" id="production">
+  <svg class="comb" viewBox="0 0 300 300" aria-hidden="true"><g fill="none" stroke="#fdf3e4" stroke-width="3"><path id="hx" d="M50 10l35 20v40L50 90 15 70V30z"/><use href="#hx" x="70"/><use href="#hx" x="140"/><use href="#hx" x="35" y="60"/><use href="#hx" x="105" y="60"/><use href="#hx" x="175" y="60"/><use href="#hx" x="70" y="120"/><use href="#hx" x="140" y="120"/></g></svg>
+  <div class="wrap">
+    <div class="head-row">
+      <div>
+        <p class="eyebrow rv">02 — Hive to Jar</p>
+        <h2 class="h2 split-words">Nothing added. <em>Nothing taken away.</em></h2>
+      </div>
+      <p class="rv">We keep the process short on purpose. The less we do to honey, the more of it reaches you.</p>
+    </div>
+    <div class="steps">
+      <div class="step rv">
+        <div class="n">01</div>
+        <h3>Gathered</h3>
+        <p>Sourced from forests and floral regions across India, season by season, from beekeepers and honey hunters we know.</p>
+        <svg class="ic" viewBox="0 0 56 56"><path d="M28 6l20 11.5v23L28 52 8 40.5v-23z"/><path d="M28 18c-5 6-8 10-8 14a8 8 0 0016 0c0-4-3-8-8-14z"/></svg>
+      </div>
+      <div class="step rv">
+        <div class="n">02</div>
+        <h3>Tested</h3>
+        <p>Every batch is checked against our quality standards for purity and safety before it's approved.</p>
+        <svg class="ic" viewBox="0 0 56 56"><path d="M22 6h12M24 6v16L10 46a3 3 0 002.6 4.5h30.8A3 3 0 0046 46L32 22V6"/><path d="M16 36h24"/></svg>
+      </div>
+      <div class="step rv">
+        <div class="n">03</div>
+        <h3>Never heated</h3>
+        <p>Our raw honeys are left unheated and unprocessed, so they keep their natural character — and may crystallise. That's a good sign.</p>
+        <svg class="ic" viewBox="0 0 56 56"><circle cx="28" cy="28" r="20"/><path d="M28 16v24M20 22c4 4 12 4 16 0M20 34c4-4 12-4 16 0"/><path d="M12 12l32 32"/></svg>
+      </div>
+      <div class="step rv">
+        <div class="n">04</div>
+        <h3>Jarred</h3>
+        <p>Strained gently and poured into glass in Bangalore, then sent straight to your door.</p>
+        <svg class="ic" viewBox="0 0 56 56"><rect x="14" y="16" width="28" height="34" rx="6"/><rect x="17" y="8" width="22" height="8" rx="2"/><path d="M14 30h28"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="sec story" id="story">
+  <div class="wrap split">
+    <div class="visual rv" aria-hidden="true">
+      <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+        <rect width="400" height="500" fill="#e8a317"/>
+        <g fill="none" stroke="#c4720d" stroke-width="3" opacity=".6">
+          <path id="h2x" d="M60 40l40 23v46l-40 23-40-23V63z"/>
+          <use href="#h2x" x="80"/><use href="#h2x" x="160"/><use href="#h2x" x="240"/><use href="#h2x" x="320"/>
+          <use href="#h2x" x="40" y="69"/><use href="#h2x" x="120" y="69"/><use href="#h2x" x="200" y="69"/><use href="#h2x" x="280" y="69"/>
+          <use href="#h2x" x="0" y="138"/><use href="#h2x" x="80" y="138"/><use href="#h2x" x="160" y="138"/><use href="#h2x" x="240" y="138"/><use href="#h2x" x="320" y="138"/>
+        </g>
+        <path d="M0 260c60-20 120 30 200 10s140-30 200 0v230H0z" fill="#c4720d"/>
+        <path d="M120 270c0 40-6 60-6 80M200 270c0 60 6 90 6 120M290 266c0 30-4 50-4 66" stroke="#c4720d" stroke-width="16" stroke-linecap="round"/>
+        <g transform="translate(200 410)">
+          <rect x="-70" y="-110" width="140" height="170" rx="28" fill="#fdf3e4" opacity=".95"/>
+          <rect x="-58" y="-128" width="116" height="26" rx="8" fill="#2b1a0e"/>
+          <rect x="-70" y="-50" width="140" height="110" rx="28" fill="#e8a317"/>
+          <text x="0" y="-62" text-anchor="middle" font-family="Fraunces" font-size="24" fill="#2b1a0e" font-style="italic">Safa</text>
+        </g>
+      </svg>
+    </div>
+    <div class="copy">
+      <p class="eyebrow rv">03 — Our Story</p>
+      <h2 class="h2 split-words">The very best, <em>from across India.</em></h2>
+      <p class="rv">Safa began with a simple idea: to collect the finest floral honeys from around the country and bring them to people exactly as nature made them.</p>
+      <p class="rv">From our home on Kanakapura Road in Bangalore, we jar raw honey for families — and supply it to makers in food, healthcare and beauty care.</p>
+      <div class="stats rv">
+        <div><b data-count="100">0</b><span>+ product types made with our honey</span></div>
+        <div><b data-count="6">0</b><span>floral &amp; forest varieties</span></div>
+        <div><b>0°</b><span>of added heat in our raw range</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRADE -->
+<section class="sec" id="trade">
+  <div class="wrap">
+    <div class="head-row">
+      <div>
+        <p class="eyebrow rv">04 — For Business</p>
+        <h2 class="h2 split-words">Honey, <em>at scale.</em></h2>
+      </div>
+      <p class="rv">We've supplied manufacturers of more than a hundred kinds of products. Tell us what you're making.</p>
+    </div>
+    <div class="trade-grid">
+      <a href="#contact" class="trade rv"><span class="k">Supply</span><h3>Bulk Honey</h3><p>Consistent, tested raw honey by the drum for food, wellness and cosmetics production.</p><span class="arrow">→</span></a>
+      <a href="#contact" class="trade rv"><span class="k">Your brand</span><h3>Private Label</h3><p>Our honey in your jar. We help with variety selection, packing and labelling.</p><span class="arrow">→</span></a>
+      <a href="#contact" class="trade rv"><span class="k">Partners</span><h3>Distribution</h3><p>Stock Safa in your store or region. Retail and distribution partnerships welcome.</p><span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- JOURNAL -->
+<section class="sec journal" id="journal" style="padding-top:clamp(60px,8vw,110px)">
+  <div class="wrap">
+    <div class="head-row">
+      <div>
+        <p class="eyebrow rv">05 — Journal</p>
+        <h2 class="h2 split-words">Notes from <em>the hive.</em></h2>
+      </div>
+      <a href="#" class="pill rv">All stories →</a>
+    </div>
+    <div class="posts">
+      <a href="#" class="post rv"><time>Apr 2019</time><h3>5 things that start happening when you take honey every day</h3><span class="cat">Everyday</span></a>
+      <a href="#" class="post rv"><time>Oct 2018</time><h3>5 ways to supercharge your breakfast with honey</h3><span class="cat">Recipes</span></a>
+      <a href="#" class="post rv"><time>Sep 2018</time><h3>3 DIY natural honey hair-care masks</h3><span class="cat">Beauty</span></a>
+      <a href="#" class="post rv"><time>Mar 2018</time><h3>Ginger &amp; honey: a warming tradition</h3><span class="cat">Rituals</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="news" aria-labelledby="newsTitle">
+  <svg class="bee" viewBox="0 0 100 80" aria-hidden="true"><ellipse cx="50" cy="48" rx="30" ry="20" fill="#2b1a0e"/><path d="M38 30v36M52 28v40" stroke="#fdf3e4" stroke-width="7"/><ellipse cx="38" cy="22" rx="18" ry="12" fill="#fff" opacity=".9"/><ellipse cx="60" cy="20" rx="16" ry="11" fill="#fff" opacity=".9"/><circle cx="78" cy="44" r="4" fill="#fdf3e4"/></svg>
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Join the colony</p>
+      <h2 class="h2" id="newsTitle">10% off <em>your first jar.</em></h2>
+    </div>
+    <div>
+      <form id="newsForm">
+        <label for="email" class="skip">Email address</label>
+        <input id="email" type="email" placeholder="Your email address" required>
+        <button class="pill solid" type="submit">Subscribe</button>
+      </form>
+      <small>Seasonal harvests, recipes and first access to small batches. Free shipping on orders above ₹500.</small>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer id="contact">
+  <div class="wrap">
+    <div class="foot-big split-words">Stay <em>sweet.</em></div>
+    <div class="foot-cols">
+      <div>
+        <h4>Visit</h4>
+        <p>19/2, Mango Garden Layout,<br>Behind METRO, Kanakapura Road,<br>Bangalore – 560 062, India</p>
+        <p style="margin-top:14px"><a href="mailto:info@safahoney.com">info@safahoney.com</a><a href="tel:+919108084444">+91 91080 84444</a></p>
+      </div>
+      <div><h4>Shop</h4><a href="#pantry">Raw Honey</a><a href="#pantry">Herbal Honey</a><a href="#pantry">Black Seed Oil</a><a href="#trade">Bulk &amp; Private Label</a></div>
+      <div><h4>About</h4><a href="#story">Our Story</a><a href="#">Quality Assurance</a><a href="#">Sustainability</a><a href="#journal">Journal</a></div>
+      <div><h4>Help</h4><a href="#">FAQ</a><a href="#">Shipping</a><a href="#">Refunds &amp; Cancellation</a><a href="#">Privacy</a></div>
+    </div>
+    <div class="legal"><span>© 2026 Safa Honey. Raw honey, made by bees.</span><span>Instagram · Facebook · Pinterest</span></div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Products ---------- */
+const products=[
+  {n:"Raw Forest Honey",m:"500 g · Wild-harvested",p:400,c:"#d9a441",h:"#7a3e0d",cat:"raw",wide:true,lbl:"#fdf3e4"},
+  {n:"Neem Blossom Honey",m:"1 kg · Herbal",p:729,was:800,c:"#b9c98f",h:"#a9620f",cat:"herbal",lbl:"#fdf3e4"},
+  {n:"Premium Raw Sidr Honey",m:"350 g · Rare",p:650,c:"#f08a4b",h:"#9b4a10",cat:"raw",lbl:"#fdf3e4"},
+  {n:"Raw Acacia Honey",m:"500 g · Light & floral",p:649,was:675,c:"#f6dd8a",h:"#e8b62a",cat:"raw",sold:true,lbl:"#2b1a0e"},
+  {n:"Raw Wild Honey",m:"500 g · Unheated",p:400,c:"#e9a48f",h:"#8a4310",cat:"raw",sold:true,lbl:"#fdf3e4"},
+  {n:"Black Seed Oil",m:"200 ml · Cold-pressed, organic",p:null,c:"#2f4a2c",h:"#1a1208",cat:"pantry",bottle:true,dark:true,lbl:"#e8a317"},
+  {n:"Raw Wild Honey — Value Pack",m:"3 kg · For the whole family",p:2050,c:"#c9b79c",h:"#7a3e0d",cat:"raw",sold:true,wide:true,big:true,lbl:"#fdf3e4"},
+  {n:"Apple Cider Vinegar",m:"500 ml · With the mother",p:395,c:"#f3c9a6",h:"#d48a2c",cat:"pantry",bottle:true,sold:true,lbl:"#2b1a0e"}
+];
+function jar(pr){
+  if(pr.bottle){
+    return `<svg class="jar" viewBox="0 0 160 300" aria-hidden="true">
+      <rect x="62" y="6" width="36" height="26" rx="5" fill="#2b1a0e"/>
+      <path d="M66 32h28v30c0 14 34 26 34 54v156a22 22 0 01-22 22H54a22 22 0 01-22-22V116c0-28 34-40 34-54z" fill="${pr.h}"/>
+      <path d="M44 128c0-10 6-16 14-20" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".25" fill="none"/>
+      <rect x="32" y="160" width="96" height="80" fill="${pr.lbl}"/>
+      <text x="80" y="198" text-anchor="middle" font-family="Fraunces" font-style="italic" font-size="22" fill="${pr.lbl==='#e8a317'?'#2b1a0e':'#c4720d'}">Safa</text>
+      <text x="80" y="220" text-anchor="middle" font-family="DM Sans" font-weight="700" font-size="8" letter-spacing="1.6" fill="${pr.lbl==='#e8a317'?'#2b1a0e':'#2b1a0e'}">${pr.n.toUpperCase().slice(0,18)}</text>
+    </svg>`;
+  }
+  const w=pr.big?220:170, x=(220-w)/2;
+  return `<svg class="jar" viewBox="0 0 220 300" aria-hidden="true">
+    <rect x="${x+16}" y="20" width="${w-32}" height="38" rx="8" fill="#2b1a0e"/>
+    <rect x="${x+16}" y="30" width="${w-32}" height="4" fill="#fdf3e4" opacity=".2"/>
+    <rect x="${x}" y="54" width="${w}" height="236" rx="34" fill="${pr.h}"/>
+    <path d="M${x+20} 92c0-14 8-22 18-24" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".3" fill="none"/>
+    <rect x="${x+20}" y="96" width="10" height="120" rx="5" fill="#fff" opacity=".18"/>
+    <rect x="${x}" y="140" width="${w}" height="96" fill="${pr.lbl}"/>
+    <path d="M110 150l12 7v14l-12 7-12-7v-14z" fill="#e8a317"/>
+    <text x="110" y="204" text-anchor="middle" font-family="Fraunces" font-style="italic" font-size="26" fill="#2b1a0e">Safa</text>
+    <text x="110" y="224" text-anchor="middle" font-family="DM Sans" font-weight="700" font-size="9" letter-spacing="1.8" fill="#2b1a0e">${pr.n.replace(/ —.*/,'').replace('Premium ','').toUpperCase()}</text>
+  </svg>`;
+}
+const grid=document.getElementById('grid');
+grid.innerHTML=products.map((pr,i)=>`
+  <article class="card rv ${pr.wide?'wide':''} ${pr.dark?'dark':''}" style="--c:${pr.c}" data-cat="${pr.cat}">
+    ${pr.sold?'<span class="tag">Sold out</span>':pr.was?`<span class="tag sale">Save ${Math.round((1-pr.p/pr.was)*100)}%</span>`:''}
+    ${pr.sold?'':`<button class="add" data-i="${i}" aria-label="Add ${pr.n} to cart">+</button>`}
+    <span class="glare"></span><div class="art"><span class="blob"></span>${jar(pr)}</div>
+    <div class="info">
+      <div><h3>${pr.n}</h3><div class="meta">${pr.m}</div></div>
+      <div class="price">${pr.p?`<b>₹${pr.p.toLocaleString('en-IN')}</b>${pr.was?`<s>₹${pr.was}</s>`:''}`:'<b style="font-size:16px">Enquire</b>'}</div>
+    </div>
+  </article>`).join('');
+
+/* Filters */
+document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const f=b.dataset.f;
+  document.querySelectorAll('.card').forEach(c=>c.classList.toggle('hide',f!=='all'&&c.dataset.cat!==f));
+}));
+
+/* Cart */
+let cart=0;const toast=document.getElementById('toast');let tt;
+function say(t){toast.textContent=t;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove('show'),2400)}
+grid.addEventListener('click',e=>{const b=e.target.closest('.add');if(!b)return;cart++;document.getElementById('cartCount').textContent=cart;say(products[b.dataset.i].n+' added to your basket')});
+document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefault();say('Welcome to the colony — check your inbox for 10% off.');e.target.reset()});
+
+/* Loader */
+(function(){
+  const el=document.getElementById('pct'),L=document.getElementById('loader');let v=0;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){L.classList.add('done');return}
+  const t=setInterval(()=>{v+=Math.ceil(Math.random()*9);if(v>=100){v=100;clearInterval(t);setTimeout(()=>L.classList.add('done'),250)}el.textContent=v},40);
+})();
+
+/* Header + menu */
+const hdr=document.getElementById('top');
+addEventListener('scroll',()=>hdr.classList.toggle('scrolled',scrollY>40),{passive:true});
+const mb=document.getElementById('menuBtn'),menu=document.getElementById('menu');
+function setMenu(o){document.body.classList.toggle('menu-open',o);mb.setAttribute('aria-expanded',o);menu.setAttribute('aria-hidden',!o);document.getElementById('menuLabel').textContent=o?'Close':'Menu';document.body.style.overflow=o?'hidden':''}
+mb.addEventListener('click',()=>setMenu(!document.body.classList.contains('menu-open')));
+menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+
+/* Hero slider */
+const slides=[...document.querySelectorAll('.scene svg')],dots=[...document.querySelectorAll('#dots button')];
+const words=['forest','acacia','sidr tree'],bgs=['#fdf3e4','#fbf0cf','#fbe3cf'],cols=['#c4720d','#b8961a','#c94a2a'];
+const hero=document.getElementById('hero'),swap=document.getElementById('swap');let cur=0,timer;
+function go(i){
+  cur=i;window.setTint&&window.setTint(i);slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+  dots.forEach((d,k)=>{d.classList.remove('on');void d.offsetWidth;if(k===i)d.classList.add('on')});
+  hero.style.backgroundColor=bgs[i];swap.style.color=cols[i];
+  document.getElementById('slideNum').textContent=`0${i+1} / 03`;
+  const old=swap.querySelector('span');old.classList.add('out');
+  setTimeout(()=>{swap.innerHTML=`<span class="in">${words[i]}</span>`;requestAnimationFrame(()=>requestAnimationFrame(()=>swap.querySelector('span').classList.remove('in')))},350);
+  clearTimeout(timer);timer=setTimeout(()=>go((cur+1)%3),6000);
+}
+dots.forEach((d,k)=>d.addEventListener('click',()=>go(k)));
+timer=setTimeout(()=>go(1),6000);
+
+/* Split words */
+document.querySelectorAll('.split-words').forEach(h=>{
+  const walk=n=>{[...n.childNodes].forEach(c=>{
+    if(c.nodeType===3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(t=>{if(!t)return;if(/^\s+$/.test(t)){f.append(t)}else{const w=document.createElement('span');w.className='w';const s=document.createElement('span');s.textContent=t;w.append(s);f.append(w)}});c.replaceWith(f)}
+    else if(c.nodeType===1)walk(c)})};
+  walk(h);h.querySelectorAll('.w > span').forEach((s,i)=>s.style.transitionDelay=i*60+'ms');
+});
+
+/* Reveal + counters */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('in');
+  e.target.querySelectorAll?.('[data-count]').forEach(b=>{const end=+b.dataset.count;let v=0;const s=setInterval(()=>{v+=Math.max(1,Math.round(end/30));if(v>=end){v=end;clearInterval(s)}b.textContent=v},30)});
+  io.unobserve(e.target)}),{threshold:.15});
+document.querySelectorAll('.rv,.split-words').forEach((el,i)=>{el.style.transitionDelay=el.classList.contains('card')?(i%3)*90+'ms':'';io.observe(el)});
+
+/* Cursor */
+const cur$=document.getElementById('cursor');
+if(matchMedia('(hover:hover)').matches){
+  addEventListener('mousemove',e=>{cur$.style.left=e.clientX+'px';cur$.style.top=e.clientY+'px'});
+  document.addEventListener('mouseover',e=>cur$.classList.toggle('big',!!e.target.closest('a,button,.card')));
+}
+
+/* 3D card tilt */
+if(matchMedia('(hover:hover)').matches){
+document.querySelectorAll('.card').forEach(c=>{
+  c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    c.style.transition='transform .15s ease-out';c.style.transform=`perspective(1000px) rotateX(${-y*12}deg) rotateY(${x*14}deg) translateY(-6px)`;
+    c.style.setProperty('--tx',x*-26+'px');c.style.setProperty('--ty',y*-20+'px');c.style.setProperty('--gx',(x+.5)*100+'%');c.style.setProperty('--gy',(y+.5)*100+'%')});
+  c.addEventListener('pointerleave',()=>{c.style.transition='transform .7s cubic-bezier(.2,.7,.2,1)';c.style.transform='';c.style.setProperty('--tx','0px');c.style.setProperty('--ty','0px')});
+});}
+/* story parallax */
+const sv=document.querySelector('.story .visual svg');
+addEventListener('scroll',()=>{const r=sv.parentNode.getBoundingClientRect(),p=(r.top+r.height/2-innerHeight/2)/innerHeight;sv.style.transform=`scale(1.12) translateY(${p*-40}px)`},{passive:true});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+if(!window.THREE)return;
+const canvas=document.getElementById('gl'),hero=document.getElementById('hero');
+const R=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+R.setPixelRatio(Math.min(devicePixelRatio,2));
+R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(32,1,.1,100);cam.position.set(0,0,11);
+
+/* soft studio environment for reflections */
+const pm=new THREE.PMREMGenerator(R),env=new THREE.Scene();
+env.add(new THREE.Mesh(new THREE.SphereGeometry(20,32,16),new THREE.MeshBasicMaterial({color:0xf3e2c4,side:THREE.BackSide})));
+[[6,6,-4,8,4],[-7,2,3,5,7],[0,-6,5,10,2]].forEach(([x,y,z,w,h])=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:0xffffff}));m.position.set(x,y,z);m.lookAt(0,0,0);env.add(m)});
+scene.environment=pm.fromScene(env,.04).texture;
+
+scene.add(new THREE.HemisphereLight(0xfff4dd,0x6b4a2a,.7));
+const key=new THREE.DirectionalLight(0xffe2b0,1.6);key.position.set(4,6,6);scene.add(key);
+const rim=new THREE.PointLight(0xffb347,2.2,20);rim.position.set(-3,1,-3);scene.add(rim);
+
+const root=new THREE.Group();scene.add(root);
+const jar=new THREE.Group();root.add(jar);
+const V=(a)=>a.map(([x,y])=>new THREE.Vector2(x,y));
+
+/* glass */
+const glass=new THREE.Mesh(new THREE.LatheGeometry(V([[0,-1.2],[.86,-1.2],[.98,-1.12],[1.02,-.95],[1.02,.82],[.98,.96],[.84,1.06],[.78,1.1],[.78,1.3],[.82,1.32],[.82,1.4],[.74,1.42]]),96),
+  new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.04,transmission:.96,thickness:.4,transparent:true,opacity:.35,clearcoat:1,clearcoatRoughness:.05,envMapIntensity:1.6,side:THREE.DoubleSide}));
+jar.add(glass);
+
+/* honey */
+const honeyMat=new THREE.MeshPhysicalMaterial({color:0xc4720d,roughness:.12,metalness:0,clearcoat:1,clearcoatRoughness:.08,transmission:.35,thickness:2,envMapIntensity:1.3,emissive:0x5a2a00,emissiveIntensity:.25});
+const honey=new THREE.Mesh(new THREE.LatheGeometry(V([[0,-1.14],[.86,-1.14],[.94,-1.06],[.97,-.92],[.97,.58],[.6,.6],[0,.62]]),96),honeyMat);
+jar.add(honey);
+
+/* label */
+const lc=document.createElement('canvas');lc.width=2048;lc.height=420;const lx=lc.getContext('2d');
+const ltex=new THREE.CanvasTexture(lc);ltex.encoding=THREE.sRGBEncoding;ltex.anisotropy=8;
+let labelName='RAW FOREST HONEY';
+function drawLabel(){
+  lx.fillStyle='#fdf3e4';lx.fillRect(0,0,2048,420);
+  lx.fillStyle='#2b1a0e';lx.fillRect(0,18,2048,6);lx.fillRect(0,396,2048,6);
+  for(const cx of [512,1536]){
+    lx.save();lx.translate(cx,0);lx.fillStyle='#e8a317';lx.beginPath();
+    for(let k=0;k<6;k++){const a=Math.PI/3*k-Math.PI/2;lx.lineTo(Math.cos(a)*34,96+Math.sin(a)*34)}lx.fill();
+    lx.fillStyle='#2b1a0e';lx.textAlign='center';
+    lx.font='italic 400 128px Fraunces, Georgia, serif';lx.fillText('Safa',0,262);
+    lx.font='700 34px "DM Sans", sans-serif';lx.letterSpacing='8px';lx.fillText(labelName.split('').join(String.fromCharCode(8202)),0,340);
+    lx.restore();
+  }
+  ltex.needsUpdate=true;
+}
+drawLabel();document.fonts&&document.fonts.ready.then(drawLabel);
+const label=new THREE.Mesh(new THREE.CylinderGeometry(1.035,1.035,.98,96,1,true),new THREE.MeshStandardMaterial({map:ltex,roughness:.55}));
+label.position.y=-.2;jar.add(label);
+
+/* lid (floating, opened) */
+const lid=new THREE.Group();
+const lidMat=new THREE.MeshStandardMaterial({color:0x2b1a0e,roughness:.35,metalness:.35});
+lid.add(new THREE.Mesh(new THREE.CylinderGeometry(.88,.88,.36,64),lidMat));
+for(let k=0;k<3;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.885,.018,8,64),new THREE.MeshStandardMaterial({color:0xe8a317,metalness:.8,roughness:.25}));t.rotation.x=Math.PI/2;t.position.y=-.1+k*.1;lid.add(t)}
+lid.position.set(-1.75,1.55,.4);lid.rotation.set(.5,0,.55);root.add(lid);
+
+/* honey dipper */
+const dip=new THREE.Group();
+const wood=new THREE.MeshStandardMaterial({color:0xb27a45,roughness:.7});
+const handle=new THREE.Mesh(new THREE.CylinderGeometry(.06,.08,2.4,24),wood);handle.position.y=1.5;dip.add(handle);
+const knob=new THREE.Mesh(new THREE.SphereGeometry(.11,24,16),wood);knob.position.y=2.72;dip.add(knob);
+const core=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.7,24),wood);dip.add(core);
+for(let k=0;k<5;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.21,.07,16,40),honeyMat);t.rotation.x=Math.PI/2;t.position.y=-.28+k*.14;dip.add(t)}
+const glob=new THREE.Mesh(new THREE.SphereGeometry(.2,32,16),honeyMat);glob.scale.set(1,1.4,1);glob.position.y=-.42;dip.add(glob);
+dip.position.set(.15,2.35,0);dip.rotation.z=-.42;root.add(dip);
+
+/* falling drops + ripple */
+const drops=[];for(let k=0;k<3;k++){const d=new THREE.Mesh(new THREE.SphereGeometry(.09,24,16),honeyMat);d.userData.t=k/3;root.add(d);drops.push(d)}
+const ripple=new THREE.Mesh(new THREE.TorusGeometry(.2,.025,8,48),new THREE.MeshPhysicalMaterial({color:0xffc14d,roughness:.1,clearcoat:1,transparent:true,opacity:0}));
+ripple.rotation.x=Math.PI/2;ripple.position.y=.63;root.add(ripple);
+
+/* shadow */
+const sc=document.createElement('canvas');sc.width=sc.height=256;const sx=sc.getContext('2d');
+const g=sx.createRadialGradient(128,128,0,128,128,128);g.addColorStop(0,'rgba(60,30,5,.45)');g.addColorStop(1,'rgba(60,30,5,0)');sx.fillStyle=g;sx.fillRect(0,0,256,256);
+const shadow=new THREE.Mesh(new THREE.PlaneGeometry(3.4,1.1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc),transparent:true,depthWrite:false}));
+shadow.rotation.x=-Math.PI/2;shadow.position.y=-1.25;root.add(shadow);
+
+/* floating honeycomb cells */
+const hexMat=new THREE.MeshPhysicalMaterial({color:0xe8a317,roughness:.15,clearcoat:1,transmission:.5,thickness:1,envMapIntensity:1.2});
+const hexGeo=new THREE.CylinderGeometry(.32,.32,.16,6);
+const hexes=[];
+for(let k=0;k<18;k++){const h=new THREE.Mesh(hexGeo,hexMat);
+  h.position.set((Math.random()-.5)*12,(Math.random()-.5)*7,-1-Math.random()*5);
+  h.rotation.set(Math.random()*6,Math.random()*6,0);const s=.5+Math.random()*.9;h.scale.setScalar(s);
+  h.userData={sp:.2+Math.random()*.5,ph:Math.random()*6,y:h.position.y};scene.add(h);hexes.push(h)}
+
+/* bees */
+function bee(){const b=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.SphereGeometry(.13,24,16),new THREE.MeshStandardMaterial({color:0xf2b01e,roughness:.5}));body.scale.set(1.5,1,1);b.add(body);
+  for(const x of[-.05,.08]){const s=new THREE.Mesh(new THREE.TorusGeometry(.115,.035,8,24),new THREE.MeshStandardMaterial({color:0x2b1a0e}));s.rotation.y=Math.PI/2;s.position.x=x;s.scale.set(1,1,1);b.add(s)}
+  const wm=new THREE.MeshPhysicalMaterial({color:0xffffff,transparent:true,opacity:.65,roughness:.1,side:THREE.DoubleSide});
+  const w1=new THREE.Mesh(new THREE.CircleGeometry(.16,24),wm);w1.scale.set(.6,1,1);w1.position.set(0,.16,.06);
+  const w2=w1.clone();w2.position.z=-.06;b.add(w1,w2);b.userData.w=[w1,w2];return b}
+const bees=[0,1,2].map(i=>{const b=bee();b.userData.o=i*2.1;b.userData.r=1.9+i*.35;root.add(b);return b});
+
+/* tint per hero slide */
+const tints=[[0xc4720d,'RAW FOREST HONEY'],[0xe0a91f,'RAW ACACIA HONEY'],[0xa8461a,'PREMIUM SIDR HONEY']];
+const target=new THREE.Color(0xc4720d);
+window.setTint=i=>{target.setHex(tints[i][0]);labelName=tints[i][1];drawLabel();spin+=Math.PI*2};
+let spin=0,spinNow=0;
+
+/* layout */
+function size(){const w=hero.clientWidth,h=hero.clientHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
+  if(cam.aspect<.85){root.position.set(.55,-2.0,0);root.scale.setScalar(.62)}
+  else if(cam.aspect<1.3){root.position.set(1.9,-.9,0);root.scale.setScalar(.75)}
+  else{root.position.set(3.1,-.65,0);root.scale.setScalar(.95)}
+  root.userData.y=root.position.y}
+addEventListener('resize',size);size();
+
+/* interaction */
+let mx=0,my=0,tx=0,ty=0;
+addEventListener('pointermove',e=>{tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5},{passive:true});
+let visible=true;new IntersectionObserver(([e])=>visible=e.isIntersecting).observe(hero);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clock=new THREE.Clock();
+
+function frame(){
+  requestAnimationFrame(frame);if(!visible)return;
+  const t=reduce?0:clock.getElapsedTime(),_=0;
+  mx+=(tx-mx)*.05;my+=(ty-my)*.05;
+  const sp=Math.min(scrollY/innerHeight,1.2);
+  spinNow+=(spin-spinNow)*.04;
+  jar.rotation.y=t*.25+spinNow+mx*.8;
+  root.rotation.x=my*.25+sp*.35;root.rotation.y=mx*.35;
+  root.position.y=root.userData.y+Math.sin(t*1.1)*.08+sp*1.6;
+  honeyMat.color.lerp(target,.04);
+  dip.position.y=2.35+Math.sin(t*1.3)*.08;dip.rotation.z=-.42+Math.sin(t*.9)*.05;
+  lid.position.y=1.55+Math.sin(t*1.1+1)*.12;lid.rotation.y=t*.4;
+  /* drops: from dipper glob to honey surface */
+  const gp=new THREE.Vector3();glob.getWorldPosition(gp);root.worldToLocal(gp);
+  drops.forEach(d=>{d.userData.t+=reduce?0:.011;if(d.userData.t>1){d.userData.t-=1;ripple.scale.setScalar(.3);ripple.material.opacity=.9}
+    const k=d.userData.t,y=gp.y-.2-(gp.y-.2-.62)*k*k;d.position.set(gp.x,y,gp.z);d.scale.set(1-k*.3,1+k*1.6,1-k*.3)});
+  ripple.scale.multiplyScalar(1.025);ripple.material.opacity*=.955;ripple.position.x=gp.x;
+  hexes.forEach(h=>{h.rotation.x+=.003*h.userData.sp;h.rotation.y+=.004*h.userData.sp;h.position.y=h.userData.y+Math.sin(t*h.userData.sp+h.userData.ph)*.3});
+  bees.forEach(b=>{const o=t*.7+b.userData.o,r=b.userData.r;b.position.set(Math.cos(o)*r,.6+Math.sin(o*2)*.5,Math.sin(o)*r*.7);b.rotation.y=-o+Math.PI;b.userData.w.forEach((w,i)=>w.rotation.x=(i?-1:1)*(.4+Math.sin(t*60)*.5))});
+  R.render(scene,cam);
+}
+frame();
+canvas.classList.add('on');
+})();
+</script>
+</body>
+</html>
