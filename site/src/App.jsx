@@ -7,10 +7,12 @@ import { AppCtx, Cursor, EASE } from './ui.jsx'
 import { Header, Menu, Footer } from './Shell.jsx'
 import Home from './Home.jsx'
 import Product from './Product.jsx'
+import { products } from './data.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const parse = () => location.hash.replace(/^#\/?/, '')
+// Routes are plain #slug hashes ('' = home) so they also work inside the artifact viewer.
+const parse = () => { const h = location.hash.slice(1); return products.some(p => p.slug === h) ? h : '' }
 
 function Loader({ onDone }) {
   const [n, setN] = useState(0)
@@ -87,7 +89,7 @@ export default function App() {
 
   const navigate = useCallback(to => {
     if (to === route) { lenis.current?.scrollTo(0); return }
-    location.hash = `/${to}`
+    location.hash = to
   }, [route])
 
   useEffect(() => {
@@ -98,7 +100,7 @@ export default function App() {
 
   const done = useCallback(() => { setLoading(false); requestAnimationFrame(() => ScrollTrigger.refresh()) }, [])
   const add = useCallback(n => { setCart(c => c + 1); setToast(`${n} added to your cart`) }, [])
-  const slug = route.startsWith('p/') ? route.slice(2) : null
+  const slug = route || null
 
   return (
     <AppCtx.Provider value={{ navigate, lenis, setCursor, cart, add }}>

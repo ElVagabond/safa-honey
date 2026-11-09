@@ -16,7 +16,7 @@ A redesign in the style of agrumeafarm.it: a scroll-driven jar carousel on a hon
 cd site && npm install && npm run dev
 ```
 
-`npm run build` writes a static site to `site/dist/`. It reuses the photos in `assets/`.
+`npm run build` writes a static site to `site/dist/`. `python3 build-artifact.py out.html` (from `site/`) builds one self-contained HTML page with everything inlined, for sharing as a Claude artifact. It reuses the photos in `assets/`.
 
 - **framer-motion**: loader, page curtain, menu, masked text reveals, the scroll-driven carousel (`useScroll` → `useTransform`), parallax layers, cursor label, draggable gallery
 - **GSAP + ScrollTrigger**: rim text running along the cell, scrubbed word fill, clip-path photo reveals, footer wordmark

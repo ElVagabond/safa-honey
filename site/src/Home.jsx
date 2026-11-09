@@ -44,7 +44,7 @@ function Jar({ p, i, n, pos, ready, spacing }) {
       aria-label={`${p.n} — discover the product`}
       onMouseEnter={() => setCursor('Discover the product')}
       onMouseLeave={() => setCursor(null)}
-      onClick={() => { setCursor(null); navigate(`p/${p.slug}`) }}
+      onClick={() => { setCursor(null); navigate(p.slug) }}
     >
       <motion.img
         src={p.img} alt="" draggable="false"

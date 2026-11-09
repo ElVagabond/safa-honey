@@ -41,7 +41,7 @@ export function Diamond() {
 // In-app link: hash routes go through the page transition, #anchors scroll with Lenis.
 export function Link({ to, href, children, cursor, onClick, ...rest }) {
   const { navigate, lenis, setCursor } = useApp()
-  const target = to ? `#/${to}` : href
+  const target = to !== undefined ? `#${to}` : href
   return (
     <a
       href={target}
@@ -51,7 +51,7 @@ export function Link({ to, href, children, cursor, onClick, ...rest }) {
       onClick={e => {
         onClick?.(e)
         if (to !== undefined) { e.preventDefault(); setCursor(null); navigate(to) }
-        else if (href?.startsWith('#') && !href.startsWith('#/')) {
+        else if (href?.startsWith('#')) {
           e.preventDefault()
           if (href === '#') lenis.current ? lenis.current.scrollTo(0) : scrollTo({ top: 0, behavior: 'smooth' })
           else lenis.current ? lenis.current.scrollTo(href, { duration: 1.6 }) : document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })

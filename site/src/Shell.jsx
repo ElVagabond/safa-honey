@@ -33,7 +33,7 @@ export function Header({ open, setOpen }) {
 }
 
 export function Menu({ open, close }) {
-  const links = [['', 'The Pantry'], ...products.slice(0, 4).map(p => [`p/${p.slug}`, p.n])]
+  const links = [['', 'The Pantry'], ...products.slice(0, 4).map(p => [p.slug, p.n])]
   return (
     <AnimatePresence>
       {open && (
@@ -65,7 +65,7 @@ export function ProductGrid({ items }) {
       {items.map((p, i) => (
         <motion.div key={p.slug} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5%' }}
           transition={{ duration: 1, ease: EASE_OUT, delay: (i % 4) * 0.08 }}>
-          <Link to={`p/${p.slug}`} className="pcard" cursor="Discover" style={{ '--tint': p.tint, '--deep': p.deep }}>
+          <Link to={p.slug} className="pcard" cursor="Discover" style={{ '--tint': p.tint, '--deep': p.deep }}>
             <span className="cell" aria-hidden="true" />
             <img src={p.img} alt="" loading="lazy" />
             <span className="pcard-meta"><b>{p.n}</b><small>{p.cat} · ₹{p.price}</small></span>
@@ -106,7 +106,7 @@ export function Footer() {
         </div>
         <nav aria-label="Footer">
           <Link to="">The Pantry</Link>
-          {products.slice(0, 4).map(p => <Link key={p.slug} to={`p/${p.slug}`}>{p.n}</Link>)}
+          {products.slice(0, 4).map(p => <Link key={p.slug} to={p.slug}>{p.n}</Link>)}
         </nav>
         <div>
           <h4>Visit</h4>
