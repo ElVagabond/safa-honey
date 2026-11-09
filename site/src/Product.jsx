@@ -58,7 +58,7 @@ export default function Product({ slug, ready }) {
   return (
     <>
       <section className="phero" key={p.slug}>
-        <h1 className="ptitle">
+        <h1 className="ptitle" aria-label={p.n}>
           {lines.map((l, i) => <Reveal key={l} as="span" className="line" play={ready} delay={0.15 + i * 0.12} split="chars" stagger={0.025}>{l}</Reveal>)}
         </h1>
         <div className="side-labels">

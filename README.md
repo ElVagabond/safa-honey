@@ -22,3 +22,5 @@ cd site && npm install && npm run dev
 - **GSAP + ScrollTrigger**: rim text running along the cell, scrubbed word fill, clip-path photo reveals, footer wordmark
 - **Lenis**: smooth scrolling, driven by GSAP's ticker so both libraries read the same scroll position
 - Honours `prefers-reduced-motion`
+
+Tests: `npm run test:e2e` (Playwright, desktop + Pixel 7) builds the site and checks the carousel, product pages, cart, menu, routing, the draggable gallery and horizontal overflow. CI runs them on every pull request; merges to `main` deploy `site/dist` to the `gh-pages` branch for GitHub Pages.

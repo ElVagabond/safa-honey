@@ -95,7 +95,8 @@ export function Footer() {
   }, [])
   return (
     <footer className="foot" ref={ref} id="contact">
-      <div className="giant" aria-label="Safa Honey">
+      <div className="giant">
+        <span className="sr">Safa Honey</span>
         <div className="giant-line" aria-hidden="true">{'SAFA'.split('').map((c, i) => <span className="mask" key={i}><span className="l">{c}</span></span>)}</div>
         <em aria-hidden="true">Honey</em>
       </div>

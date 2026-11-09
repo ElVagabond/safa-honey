@@ -15,7 +15,8 @@ export function Reveal({ children, as: Tag = 'span', delay = 0, play = true, cla
   const parts = split === 'chars' ? [...children] : children.split(' ')
   const step = stagger ?? (split === 'chars' ? 0.03 : 0.07)
   return (
-    <Tag ref={ref} className={`reveal ${className}`} aria-label={children}>
+    <Tag ref={ref} className={`reveal ${className}`}>
+      <span className="sr">{children}</span>
       {parts.map((p, i) => (
         <Fragment key={i}>
           <span className="mask" aria-hidden="true">
