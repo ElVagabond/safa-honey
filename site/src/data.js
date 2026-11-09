@@ -1,5 +1,5 @@
 import forest from '@assets/forest.webp'
-import neem from '@assets/neem.webp'
+import neem from '@assets/neem-single.webp'
 import sidr from '@assets/sidr.webp'
 import acacia from '@assets/acacia.webp'
 import wild from '@assets/wild.webp'
