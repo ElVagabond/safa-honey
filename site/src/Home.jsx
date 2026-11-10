@@ -57,7 +57,7 @@ function Jar({ p, i, n, pos, ready, spacing }) {
     >
       {has3D(p.slug) ? (
         <motion.div className="cjar-3d" {...intro}>
-          <Jar3D slug={p.slug} fallback={p.img} interactive={false} turn={turn} />
+          <Jar3D slug={p.slug} fallback={p.img} interactive={false} turn={turn} play={ready} />
         </motion.div>
       ) : (
         <motion.img src={p.img} alt="" draggable="false" {...intro} />

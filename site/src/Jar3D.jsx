@@ -85,7 +85,64 @@ function lidGeometry(r, h) {
   return geo
 }
 
-function build(slug, renderer, onLoad) {
+/* A renderer plus the lit scene jars are shown in. Throws without WebGL. */
+function makeStage(canvas) {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
+  renderer.setPixelRatio(1)
+  renderer.toneMapping = THREE.NeutralToneMapping
+  renderer.toneMappingExposure = 1.05
+  renderer.setClearColor(0x000000, 0)
+  renderer.setScissorTest(true)
+  const scene = new THREE.Scene()
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+  pmrem.dispose()
+  const key = new THREE.DirectionalLight('#fff4e0', 1.6)
+  key.position.set(-3, 4, 5)
+  const rim = new THREE.DirectionalLight('#ffd9a0', 1.2)
+  rim.position.set(4, 2, -4)
+  scene.add(key, rim, new THREE.HemisphereLight('#fff6e8', '#5a2a10', 0.5))
+  return { renderer, scene, w: 0, h: 0 }
+}
+
+/* The carousel shows up to four jars at once. Rather than a WebGL context each, they share one
+   offscreen stage: each jar is drawn into it and copied onto the jar's own 2D canvas. Copying
+   costs a GPU read-back, so carousel jars only redraw when they turn. */
+let shared = null
+function getShared() {
+  if (shared === null) { try { shared = makeStage() } catch { shared = false } }
+  return shared
+}
+
+/* Draw `jar` seen by `camera`: straight onto the stage's canvas, or, with `ctx`, copied onto it. */
+function draw(st, jar, camera, w, h, ctx) {
+  if (ctx ? w > st.w || h > st.h : w !== st.w || h !== st.h) {
+    st.w = ctx ? Math.max(w, st.w) : w; st.h = ctx ? Math.max(h, st.h) : h
+    st.renderer.setSize(st.w, st.h, false)
+  }
+  st.renderer.setViewport(0, 0, w, h)
+  st.renderer.setScissor(0, 0, w, h)
+  st.scene.add(jar.pivot)
+  st.renderer.render(st.scene, camera)
+  st.scene.remove(jar.pivot)
+  if (!ctx) return
+  ctx.clearRect(0, 0, w, h)
+  ctx.drawImage(st.renderer.domElement, 0, st.h - h, w, h, 0, 0, w, h) // WebGL draws from the bottom-left
+}
+
+/* Model for one product, built once and kept (the four jars are small); any renderer can draw it. */
+const jars = new Map()
+function getJar(slug) {
+  if (!jars.has(slug)) {
+    const listeners = new Set()
+    const jar = build(slug, () => listeners.forEach(f => f()))
+    jar.listeners = listeners
+    jars.set(slug, jar)
+  }
+  return jars.get(slug)
+}
+
+function build(slug, onLoad) {
   const jar = data.jars[slug]
   const H = data.shape.aspect * 2
   const lidH = data.shape.lid.h * H
@@ -93,7 +150,7 @@ function build(slug, renderer, onLoad) {
   const label = name => {
     const t = loader.load(texUrl(name), onLoad)
     t.colorSpace = THREE.SRGBColorSpace
-    t.anisotropy = renderer.capabilities.getMaxAnisotropy()
+    t.anisotropy = 8
     return t
   }
   const honey = new THREE.Color(jar.honey)
@@ -113,59 +170,54 @@ function build(slug, renderer, onLoad) {
   group.position.y = -(H + lidH) / 2
   const pivot = new THREE.Group()
   pivot.add(group)
-  return { pivot, height: H + lidH, dispose: () => { [...mats, gold].forEach(m => { m.map?.dispose(); m.dispose() }); group.children.forEach(c => c.geometry.dispose()) } }
+  return { pivot, height: H + lidH }
 }
 
 /**
  * A jar in 3D. Falls back to the photo without WebGL.
  * interactive (product page): turns slowly on its own, turns further as the page scrolls,
  *   follows the pointer a little and can be spun by dragging (with inertia).
- * otherwise (home carousel): faces front with a slight sway, turned by the `turn` motion value;
- *   clicks go through to the surrounding button.
+ *   It has its own WebGL context, drawing straight to its canvas.
+ * otherwise (home carousel): turned by the `turn` motion value, drawn through the shared stage,
+ *   only once `play` is true; clicks go through to the surrounding button.
  */
-export default function Jar3D({ slug, fallback, alt = '', interactive = true, turn, className = '' }) {
+export default function Jar3D({ slug, fallback, alt = '', interactive = true, turn, play = true, className = '' }) {
   const host = useRef(null)
   const [failed, setFailed] = useState(false)
   const { setCursor } = useApp()
 
   useEffect(() => {
     const el = host.current
-    let renderer
+    if (!play) return
+    const canvas = document.createElement('canvas')
+    let st, ctx = null
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
+      if (interactive) st = makeStage(canvas)
+      else { st = getShared(); if (!st) throw new Error('no WebGL'); ctx = canvas.getContext('2d') }
     } catch { setFailed(true); return }
-    renderer.setPixelRatio(Math.min(devicePixelRatio, interactive ? 2 : 1.5))
-    renderer.toneMapping = THREE.NeutralToneMapping
-    renderer.toneMappingExposure = 1.05
-    el.appendChild(renderer.domElement)
-    if (alt) { renderer.domElement.setAttribute('role', 'img'); renderer.domElement.setAttribute('aria-label', alt) }
-    else renderer.domElement.setAttribute('aria-hidden', 'true')
+    el.appendChild(canvas)
+    if (alt) { canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', alt) }
+    else canvas.setAttribute('aria-hidden', 'true')
 
-    const scene = new THREE.Scene()
-    const pmrem = new THREE.PMREMGenerator(renderer)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.environment = env
-    const key = new THREE.DirectionalLight('#fff4e0', 1.6)
-    key.position.set(-3, 4, 5)
-    const rim = new THREE.DirectionalLight('#ffd9a0', 1.2)
-    rim.position.set(4, 2, -4)
-    scene.add(key, rim, new THREE.HemisphereLight('#fff6e8', '#5a2a10', 0.5))
-
-    let dirty = true // carousel jars only redraw when their pose changes or a label arrives
-    const jar = build(slug, renderer, () => { dirty = true })
-    scene.add(jar.pivot)
+    let dirty = true // redraw only when the pose changes, the size changes or a label arrives
+    const jar = getJar(slug)
+    const onTex = () => { dirty = true }
+    jar.listeners.add(onTex)
     const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 100)
     const dist = (jar.height * 0.62) / Math.tan(THREE.MathUtils.degToRad(10))
     camera.position.set(0, dist * 0.16, dist)
     camera.lookAt(0, 0, 0)
 
+    let W = 0, H = 0
     const resize = () => {
       const { width, height } = el.getBoundingClientRect()
       if (!width || !height) return
-      dirty = true
-      renderer.setSize(width, height, false)
+      const dpr = Math.min(devicePixelRatio, interactive ? 2 : 1.5)
+      W = Math.round(width * dpr); H = Math.round(height * dpr)
+      if (ctx) { canvas.width = W; canvas.height = H }
       camera.aspect = width / height
       camera.updateProjectionMatrix()
+      dirty = true
     }
     const ro = new ResizeObserver(resize)
     ro.observe(el)
@@ -174,6 +226,7 @@ export default function Jar3D({ slug, fallback, alt = '', interactive = true, tu
     // spin state: own angle (idle + drag + inertia) plus the scroll position
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
     let angle = interactive ? -0.5 : 0, vel = 0, drag = null, tiltX = 0, tiltY = 0, aimX = 0, aimY = 0
+    let pose = ''
     const down = e => { drag = { x: e.clientX, t: performance.now() }; vel = 0; el.setPointerCapture(e.pointerId); el.classList.add('grabbing') }
     const move = e => {
       const b = el.getBoundingClientRect()
@@ -205,15 +258,15 @@ export default function Jar3D({ slug, fallback, alt = '', interactive = true, tu
       tiltX += (aimX - tiltX) * Math.min(dt * 5, 1)
       tiltY += (aimY - tiltY) * Math.min(dt * 5, 1)
       const t = turn ? turn.get() : 0
-      // in the carousel only the jar in the centre slot sways; the rest hold still until scrolled
-      const sway = reduce ? 0 : interactive ? 1 : Math.max(0, 1 - Math.abs(t))
-      const extra = interactive ? scrollY * 0.004 : Math.sin(now / 1400) * 0.14 * sway
-      const ry = angle + extra + tiltY + t, py = Math.sin(now / 900) * 0.03 * sway
-      if (interactive || dirty || ry !== jar.pivot.rotation.y || py !== jar.pivot.position.y) {
-        jar.pivot.rotation.set(tiltX, ry, 0)
+      const rx = tiltX, ry = angle + tiltY + t + (interactive ? scrollY * 0.004 : 0)
+      const py = interactive && !reduce ? Math.sin(now / 900) * 0.03 : 0
+      const key = `${rx.toFixed(4)} ${ry.toFixed(4)} ${py.toFixed(4)}`
+      if (W && (dirty || key !== pose)) {
+        jar.pivot.rotation.set(rx, ry, 0)
         jar.pivot.position.y = py
-        renderer.render(scene, camera)
+        draw(st, jar, camera, W, H, ctx)
         dirty = false
+        pose = key
       }
       if (visible) raf = requestAnimationFrame(frame)
     }
@@ -222,10 +275,11 @@ export default function Jar3D({ slug, fallback, alt = '', interactive = true, tu
     return () => {
       cancelAnimationFrame(raf); io.disconnect(); ro.disconnect()
       events.forEach(([n, f]) => el.removeEventListener(n, f))
-      jar.dispose(); env.dispose(); pmrem.dispose(); renderer.dispose()
-      renderer.domElement.remove()
+      jar.listeners.delete(onTex)
+      if (interactive) { st.scene.environment.dispose(); st.renderer.dispose() }
+      canvas.remove()
     }
-  }, [slug, alt, interactive, turn])
+  }, [slug, alt, interactive, turn, play])
 
   if (failed) return <img src={fallback} alt={alt} draggable="false" />
   return (
