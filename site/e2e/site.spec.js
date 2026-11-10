@@ -129,3 +129,19 @@ test('on phones the pantry is a swipeable row of cards', async ({ page, isMobile
   await expect.poll(() => row.evaluate(el => el.scrollLeft)).toBeGreaterThan(100)
   await expect(page.locator('#pantry .swipe-hint')).toBeVisible()
 })
+
+test('jars with photos from every side turn in 3D; the others keep their photo', async ({ page }) => {
+  await open(page, '#raw-wild-honey')
+  const jar = page.locator('.pjar .jar3d canvas')
+  await expect(jar).toBeVisible()
+  await expect(jar).toHaveAttribute('aria-label', /Raw Wild Honey.*3D/)
+  const box = await jar.boundingBox()
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2 + 150, box.y + box.height / 2, { steps: 8 })
+  await page.mouse.up()
+
+  await page.goto('./#premium-sidr-honey')
+  await expect(page.locator('.pjar img')).toBeVisible({ timeout: 5_000 })
+  await expect(page.locator('.pjar canvas')).toHaveCount(0)
+})
