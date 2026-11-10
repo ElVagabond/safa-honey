@@ -145,3 +145,14 @@ test('jars with photos from every side turn in 3D; the others keep their photo',
   await expect(page.locator('.pjar img')).toBeVisible({ timeout: 5_000 })
   await expect(page.locator('.pjar canvas')).toHaveCount(0)
 })
+
+test('home carousel shows the 3D jars, and clicking one still opens its page', async ({ page }) => {
+  await open(page)
+  await expect(page.locator('.cjar .jar3d canvas')).toHaveCount(4)
+  await expect(page.locator('.cjar img')).toHaveCount(3)
+  // a real pointer click on the canvas of the jar in the centre slot (Raw Forest Honey)
+  const box = await page.locator('.cjar').first().locator('canvas').boundingBox()
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+  await expect(page).toHaveURL(/#raw-forest-honey$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Raw Forest Honey', { timeout: 5_000 })
+})

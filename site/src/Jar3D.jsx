@@ -85,13 +85,13 @@ function lidGeometry(r, h) {
   return geo
 }
 
-function build(slug, renderer) {
+function build(slug, renderer, onLoad) {
   const jar = data.jars[slug]
   const H = data.shape.aspect * 2
   const lidH = data.shape.lid.h * H
   const loader = new THREE.TextureLoader()
   const label = name => {
-    const t = loader.load(texUrl(name))
+    const t = loader.load(texUrl(name), onLoad)
     t.colorSpace = THREE.SRGBColorSpace
     t.anisotropy = renderer.capabilities.getMaxAnisotropy()
     return t
@@ -117,10 +117,13 @@ function build(slug, renderer) {
 }
 
 /**
- * The product jar in 3D. It turns slowly on its own, turns further as the page scrolls,
- * and can be spun by dragging (with inertia). Falls back to the photo without WebGL.
+ * A jar in 3D. Falls back to the photo without WebGL.
+ * interactive (product page): turns slowly on its own, turns further as the page scrolls,
+ *   follows the pointer a little and can be spun by dragging (with inertia).
+ * otherwise (home carousel): faces front with a slight sway, turned by the `turn` motion value;
+ *   clicks go through to the surrounding button.
  */
-export default function Jar3D({ slug, fallback, alt }) {
+export default function Jar3D({ slug, fallback, alt = '', interactive = true, turn, className = '' }) {
   const host = useRef(null)
   const [failed, setFailed] = useState(false)
   const { setCursor } = useApp()
@@ -131,12 +134,12 @@ export default function Jar3D({ slug, fallback, alt }) {
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
     } catch { setFailed(true); return }
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(devicePixelRatio, interactive ? 2 : 1.5))
     renderer.toneMapping = THREE.NeutralToneMapping
     renderer.toneMappingExposure = 1.05
     el.appendChild(renderer.domElement)
-    renderer.domElement.setAttribute('role', 'img')
-    renderer.domElement.setAttribute('aria-label', alt)
+    if (alt) { renderer.domElement.setAttribute('role', 'img'); renderer.domElement.setAttribute('aria-label', alt) }
+    else renderer.domElement.setAttribute('aria-hidden', 'true')
 
     const scene = new THREE.Scene()
     const pmrem = new THREE.PMREMGenerator(renderer)
@@ -148,7 +151,8 @@ export default function Jar3D({ slug, fallback, alt }) {
     rim.position.set(4, 2, -4)
     scene.add(key, rim, new THREE.HemisphereLight('#fff6e8', '#5a2a10', 0.5))
 
-    const jar = build(slug, renderer)
+    let dirty = true // carousel jars only redraw when their pose changes or a label arrives
+    const jar = build(slug, renderer, () => { dirty = true })
     scene.add(jar.pivot)
     const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 100)
     const dist = (jar.height * 0.62) / Math.tan(THREE.MathUtils.degToRad(10))
@@ -158,6 +162,7 @@ export default function Jar3D({ slug, fallback, alt }) {
     const resize = () => {
       const { width, height } = el.getBoundingClientRect()
       if (!width || !height) return
+      dirty = true
       renderer.setSize(width, height, false)
       camera.aspect = width / height
       camera.updateProjectionMatrix()
@@ -168,7 +173,7 @@ export default function Jar3D({ slug, fallback, alt }) {
 
     // spin state: own angle (idle + drag + inertia) plus the scroll position
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    let angle = -0.5, vel = 0, drag = null, tiltX = 0, tiltY = 0, aimX = 0, aimY = 0
+    let angle = interactive ? -0.5 : 0, vel = 0, drag = null, tiltX = 0, tiltY = 0, aimX = 0, aimY = 0
     const down = e => { drag = { x: e.clientX, t: performance.now() }; vel = 0; el.setPointerCapture(e.pointerId); el.classList.add('grabbing') }
     const move = e => {
       const b = el.getBoundingClientRect()
@@ -182,11 +187,8 @@ export default function Jar3D({ slug, fallback, alt }) {
     }
     const up = () => { drag = null; el.classList.remove('grabbing') }
     const leave = () => { aimX = aimY = 0 }
-    el.addEventListener('pointerdown', down)
-    el.addEventListener('pointermove', move)
-    el.addEventListener('pointerup', up)
-    el.addEventListener('pointercancel', up)
-    el.addEventListener('pointerleave', leave)
+    const events = interactive ? [['pointerdown', down], ['pointermove', move], ['pointerup', up], ['pointercancel', up], ['pointerleave', leave]] : []
+    events.forEach(([n, f]) => el.addEventListener(n, f))
 
     let visible = true, raf = 0, last = performance.now()
     const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) { last = performance.now(); raf = requestAnimationFrame(frame) } })
@@ -198,29 +200,37 @@ export default function Jar3D({ slug, fallback, alt }) {
       if (!drag) {
         angle += vel * dt
         vel *= Math.pow(0.04, dt)
-        if (!reduce) angle += 0.35 * dt
+        if (!reduce && interactive) angle += 0.35 * dt
       }
       tiltX += (aimX - tiltX) * Math.min(dt * 5, 1)
       tiltY += (aimY - tiltY) * Math.min(dt * 5, 1)
-      jar.pivot.rotation.set(tiltX, angle + scrollY * 0.004 + tiltY, 0)
-      jar.pivot.position.y = reduce ? 0 : Math.sin(now / 900) * 0.03
-      renderer.render(scene, camera)
+      const t = turn ? turn.get() : 0
+      // in the carousel only the jar in the centre slot sways; the rest hold still until scrolled
+      const sway = reduce ? 0 : interactive ? 1 : Math.max(0, 1 - Math.abs(t))
+      const extra = interactive ? scrollY * 0.004 : Math.sin(now / 1400) * 0.14 * sway
+      const ry = angle + extra + tiltY + t, py = Math.sin(now / 900) * 0.03 * sway
+      if (interactive || dirty || ry !== jar.pivot.rotation.y || py !== jar.pivot.position.y) {
+        jar.pivot.rotation.set(tiltX, ry, 0)
+        jar.pivot.position.y = py
+        renderer.render(scene, camera)
+        dirty = false
+      }
       if (visible) raf = requestAnimationFrame(frame)
     }
     raf = requestAnimationFrame(frame)
 
     return () => {
       cancelAnimationFrame(raf); io.disconnect(); ro.disconnect()
-      el.removeEventListener('pointerdown', down); el.removeEventListener('pointermove', move)
-      el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); el.removeEventListener('pointerleave', leave)
+      events.forEach(([n, f]) => el.removeEventListener(n, f))
       jar.dispose(); env.dispose(); pmrem.dispose(); renderer.dispose()
       renderer.domElement.remove()
     }
-  }, [slug, alt])
+  }, [slug, alt, interactive, turn])
 
-  if (failed) return <img src={fallback} alt={alt} />
+  if (failed) return <img src={fallback} alt={alt} draggable="false" />
   return (
-    <div className="jar3d" ref={host}
-      onMouseEnter={() => setCursor('Drag to turn')} onMouseLeave={() => setCursor(null)} />
+    <div className={`jar3d ${className}`} ref={host}
+      onMouseEnter={interactive ? () => setCursor('Drag to turn') : undefined}
+      onMouseLeave={interactive ? () => setCursor(null) : undefined} />
   )
 }
