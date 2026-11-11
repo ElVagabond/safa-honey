@@ -129,3 +129,30 @@ test('on phones the pantry is a swipeable row of cards', async ({ page, isMobile
   await expect.poll(() => row.evaluate(el => el.scrollLeft)).toBeGreaterThan(100)
   await expect(page.locator('#pantry .swipe-hint')).toBeVisible()
 })
+
+test('jars with photos from every side turn in 3D; the others keep their photo', async ({ page }) => {
+  await open(page, '#raw-wild-honey')
+  const jar = page.locator('.pjar .jar3d canvas')
+  await expect(jar).toBeVisible()
+  await expect(jar).toHaveAttribute('aria-label', /Raw Wild Honey.*3D/)
+  const box = await jar.boundingBox()
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2 + 150, box.y + box.height / 2, { steps: 8 })
+  await page.mouse.up()
+
+  await page.goto('./#premium-sidr-honey')
+  await expect(page.locator('.pjar img')).toBeVisible({ timeout: 5_000 })
+  await expect(page.locator('.pjar canvas')).toHaveCount(0)
+})
+
+test('home carousel shows the 3D jars, and clicking one still opens its page', async ({ page }) => {
+  await open(page)
+  await expect(page.locator('.cjar .jar3d canvas')).toHaveCount(4)
+  await expect(page.locator('.cjar img')).toHaveCount(3)
+  // a real pointer click on the canvas of the jar in the centre slot (Raw Forest Honey)
+  const box = await page.locator('.cjar').first().locator('canvas').boundingBox()
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+  await expect(page).toHaveURL(/#raw-forest-honey$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Raw Forest Honey', { timeout: 5_000 })
+})

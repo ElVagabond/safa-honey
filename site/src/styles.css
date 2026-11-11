@@ -87,6 +87,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .jars { position: absolute; inset: 0 }
 .cjar { position: absolute; left: 50%; top: 56%; width: 0; height: 0; will-change: transform }
 .cjar img { position: absolute; left: 0; top: 0; translate: -50% -50%; height: min(42vh, 460px); width: auto; max-width: none; filter: drop-shadow(0 34px 34px rgba(59, 15, 29, .3)); user-select: none }
+/* the 3D canvas frames the jar with ~20% air, so it is drawn taller than the photo to match */
+.cjar-3d { position: absolute; left: 0; top: 0; translate: -50% -50% }
+.cjar-3d .jar3d { height: min(49vh, 540px); aspect-ratio: .8; cursor: pointer; filter: drop-shadow(0 34px 34px rgba(59, 15, 29, .3)) }
+.cjar-3d img { position: static; translate: none }
 .hero-foot { position: absolute; inset: auto var(--gut) 18px; display: flex; justify-content: center; align-items: end; color: var(--cream); z-index: 20 }
 .hero-name { position: absolute; left: 0; bottom: 0; font-family: var(--serif); font-size: 20px; color: var(--cream); display: flex; flex-direction: column }
 .hero-name small { font-family: var(--sans); font-size: 11px; letter-spacing: .14em; opacity: .7 }
@@ -143,6 +147,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .phero .side-labels { position: absolute; left: var(--gut); right: var(--gut); top: 64vh; z-index: 3 }
 .pjar { position: absolute; left: 50%; bottom: -22vh; translate: -50% 0; z-index: 2; will-change: transform }
 .pjar img { height: min(60vh, 640px); width: auto; max-width: none; filter: drop-shadow(0 40px 40px rgba(59, 15, 29, .3)) }
+.jar3d { height: min(78vh, 820px); aspect-ratio: .8; margin-bottom: 6vh; cursor: grab; touch-action: pan-y; filter: drop-shadow(0 40px 40px rgba(59, 15, 29, .3)) }
+.jar3d.grabbing { cursor: grabbing }
+.jar3d canvas { display: block; width: 100%; height: 100% }
 .pinfo { position: relative; z-index: 3; background: var(--cream); padding: clamp(70px, 9vw, 130px) var(--gut) clamp(40px, 6vw, 80px); display: grid; gap: 28px }
 .pdesc { max-width: 52ch; margin: 0 auto; text-align: center; color: var(--wine); font-size: clamp(17px, 1.4vw, 20px); line-height: 1.6 }
 .facts { margin-top: clamp(40px, 6vw, 80px); display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; border-top: 1px solid var(--line) }
@@ -197,6 +204,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .rim-text { font-size: 110px }
   .cjar { top: 47% }
   .cjar img { height: 29vh; max-width: 54vw; object-fit: contain }
+  .cjar-3d .jar3d { height: 34vh }
   .hero-foot { flex-direction: column; align-items: center; gap: 14px }
   .hero-name { position: static; align-items: center; text-align: center; font-size: 22px; line-height: 1.15 }
   .side-labels { font-size: 14px }
@@ -223,6 +231,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .facts { grid-template-columns: 1fr }
   .facts > div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); margin-top: 18px }
   .pjar img { height: 52vh }
+  .jar3d { height: 64vh; margin-bottom: 4vh }
   .phero .side-labels { top: auto; bottom: 40vh }
   .slide { width: 78vw }
   .foot-cols { grid-template-columns: 1fr }

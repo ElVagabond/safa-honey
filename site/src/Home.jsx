@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import { img, products } from './data.js'
 import { EASE_OUT, Diamond, useApp } from './ui.jsx'
 import { ProductGrid, SectionTitle } from './Shell.jsx'
+import Jar3D, { has3D } from './Jar3D.jsx'
 
 /* Rounded, pointy-topped hexagon — a honeycomb cell. `from`/`count` pick which vertices to walk. */
 function hexPath(cx, cy, R, r, from = 0, count = 6, closed = true) {
@@ -37,6 +38,14 @@ function Jar({ p, i, n, pos, ready, spacing }) {
   const rotate = useTransform(pos, v => { const d = dist(v); return d * 9 + (i % 2 ? 7 : -7) * Math.min(Math.abs(d), 1) })
   const scale = useTransform(pos, v => 1.12 - Math.min(Math.abs(dist(v)), 2.2) * 0.2)
   const zIndex = useTransform(pos, v => 10 - Math.round(Math.abs(dist(v)) * 2))
+  // 3D jars turn as they travel along the arc and face front in the centre slot
+  const turn = useTransform(pos, v => -dist(v) * 1.1)
+  const intro = {
+    initial: { y: '70vh', rotate: 20 },
+    animate: ready ? { y: 0, rotate: 0 } : undefined,
+    transition: { duration: 1.6, ease: EASE_OUT, delay: 0.25 + ((i * 3) % n) * 0.06 },
+    whileHover: { scale: 1.06, transition: { duration: 0.5 } },
+  }
   return (
     <motion.button
       className="cjar"
@@ -46,13 +55,13 @@ function Jar({ p, i, n, pos, ready, spacing }) {
       onMouseLeave={() => setCursor(null)}
       onClick={() => { setCursor(null); navigate(p.slug) }}
     >
-      <motion.img
-        src={p.img} alt="" draggable="false"
-        initial={{ y: '70vh', rotate: 20 }}
-        animate={ready ? { y: 0, rotate: 0 } : undefined}
-        transition={{ duration: 1.6, ease: EASE_OUT, delay: 0.25 + ((i * 3) % n) * 0.06 }}
-        whileHover={{ scale: 1.06, transition: { duration: 0.5 } }}
-      />
+      {has3D(p.slug) ? (
+        <motion.div className="cjar-3d" {...intro}>
+          <Jar3D slug={p.slug} fallback={p.img} interactive={false} turn={turn} play={ready} />
+        </motion.div>
+      ) : (
+        <motion.img src={p.img} alt="" draggable="false" {...intro} />
+      )}
     </motion.button>
   )
 }

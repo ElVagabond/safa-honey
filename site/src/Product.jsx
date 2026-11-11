@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import { products, gallery } from './data.js'
 import { EASE_OUT, Diamond, Reveal, useApp } from './ui.jsx'
 import { ProductGrid, SectionTitle } from './Shell.jsx'
+import Jar3D, { has3D } from './Jar3D.jsx'
 
 function Gallery({ p }) {
   const { setCursor } = useApp()
@@ -49,7 +50,7 @@ export default function Product({ slug, ready }) {
   const reduce = useReducedMotion()
   const { scrollY } = useScroll()
   const jarY = useTransform(scrollY, [0, 700], reduce ? ['0vh', '0vh'] : ['0vh', '-34vh'])
-  const jarR = useTransform(scrollY, [0, 700], reduce ? [0, 0] : [0, -16])
+  const jarR = useTransform(scrollY, [0, 700], reduce || has3D(slug) ? [0, 0] : [0, -16])
   const jarS = useTransform(scrollY, [0, 700], [1, 0.82])
   const words = p.n.toUpperCase().split(' ')
   const half = Math.ceil(words.length / 2)
@@ -66,8 +67,14 @@ export default function Product({ slug, ready }) {
           <motion.span initial={{ opacity: 0 }} animate={ready ? { opacity: 1 } : undefined} transition={{ delay: 0.9 }}>Jarred in<br />Bangalore – India</motion.span>
         </div>
         <motion.div className="pjar" style={{ y: jarY, rotate: jarR, scale: jarS }}>
-          <motion.img src={p.img} alt={`A jar of ${p.n}`}
-            initial={{ y: '60vh' }} animate={ready ? { y: '0vh' } : undefined} transition={{ duration: 1.6, ease: EASE_OUT, delay: 0.3 }} />
+          {has3D(p.slug) ? (
+            <motion.div initial={{ y: '60vh' }} animate={ready ? { y: '0vh' } : undefined} transition={{ duration: 1.6, ease: EASE_OUT, delay: 0.3 }}>
+              <Jar3D slug={p.slug} fallback={p.img} alt={`A jar of ${p.n}, shown in 3D — drag to turn it`} />
+            </motion.div>
+          ) : (
+            <motion.img src={p.img} alt={`A jar of ${p.n}`}
+              initial={{ y: '60vh' }} animate={ready ? { y: '0vh' } : undefined} transition={{ duration: 1.6, ease: EASE_OUT, delay: 0.3 }} />
+          )}
         </motion.div>
       </section>
 
