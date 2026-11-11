@@ -74,7 +74,7 @@ export function ProductGrid({ items }) {
           </motion.div>
         ))}
       </div>
-      <p className="swipe-hint" aria-hidden="true">Swipe to see more →</p>
+      {items.length > 2 && <p className="swipe-hint" aria-hidden="true">Swipe to see more →</p>}
     </>
   )
 }

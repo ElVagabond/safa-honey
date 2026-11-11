@@ -40,6 +40,9 @@ function Jar({ p, i, n, pos, ready, spacing }) {
   const zIndex = useTransform(pos, v => 10 - Math.round(Math.abs(dist(v)) * 2))
   // 3D jars turn as they travel along the arc and face front in the centre slot
   const turn = useTransform(pos, v => -dist(v) * 1.1)
+  // with this many jars, a jar's 3D is set up only once it comes near the centre slot
+  const [near, setNear] = useState(() => Math.abs(dist(pos.get())) < 3)
+  useMotionValueEvent(pos, 'change', v => { if (!near && Math.abs(dist(v)) < 3) setNear(true) })
   const intro = {
     initial: { y: '70vh', rotate: 20 },
     animate: ready ? { y: 0, rotate: 0 } : undefined,
@@ -57,7 +60,7 @@ function Jar({ p, i, n, pos, ready, spacing }) {
     >
       {has3D(p.slug) ? (
         <motion.div className="cjar-3d" {...intro}>
-          <Jar3D slug={p.slug} fallback={p.img} interactive={false} turn={turn} play={ready} />
+          <Jar3D slug={p.slug} fallback={p.img} interactive={false} turn={turn} play={ready && near} />
         </motion.div>
       ) : (
         <motion.img src={p.img} alt="" draggable="false" {...intro} />
@@ -228,9 +231,13 @@ export default function Home({ ready }) {
       <Manifesto />
       <Band />
       <Process />
+      <section className="others" id="raw-honey">
+        <SectionTitle sub="Shop">{'RAW\nHONEY'}</SectionTitle>
+        <ProductGrid items={products.filter(p => p.raw)} />
+      </section>
       <section className="others" id="pantry">
-        <SectionTitle sub="Shop">{'THE\nPANTRY'}</SectionTitle>
-        <ProductGrid items={products} />
+        <SectionTitle sub="Also from Safa">{'THE\nPANTRY'}</SectionTitle>
+        <ProductGrid items={products.filter(p => !p.raw)} />
       </section>
     </>
   )

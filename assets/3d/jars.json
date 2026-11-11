@@ -172,6 +172,63 @@
    "r": 0.8487
   }
  },
+ "hex": {
+  "profile": [
+   [
+    0,
+    0.93,
+    0
+   ],
+   [
+    0.05,
+    1,
+    0
+   ],
+   [
+    0.15,
+    1,
+    0
+   ],
+   [
+    1.64,
+    1,
+    0
+   ],
+   [
+    1.84,
+    1,
+    0
+   ],
+   [
+    1.93,
+    0.97,
+    0.3
+   ],
+   [
+    2.0,
+    0.88,
+    0.65
+   ],
+   [
+    2.06,
+    0.76,
+    1
+   ],
+   [
+    2.19,
+    0.72,
+    1
+   ]
+  ],
+  "band": [
+   0.15,
+   1.64
+  ],
+  "lid": {
+   "h": 0.25,
+   "r": 0.83
+  }
+ },
  "jars": {
   "raw-forest-honey": {
    "honey": "#8a3a12",
@@ -183,11 +240,67 @@
   },
   "neem-blossom-honey": {
    "honey": "#6e2c12",
-   "back": false
+   "back": true
   },
   "raw-wild-honey": {
    "honey": "#3a2213",
    "back": true
+  },
+  "raw-borage-honey": {
+   "mould": "hex",
+   "honey": "#e3c574",
+   "lid": "gold",
+   "faces": [
+    4,
+    5,
+    0,
+    1,
+    2
+   ]
+  },
+  "raw-white-honey": {
+   "mould": "hex",
+   "honey": "#efe6cf",
+   "lid": "black",
+   "faces": [
+    4,
+    5,
+    0,
+    1,
+    2
+   ]
+  },
+  "raw-black-forest-honey": {
+   "mould": "hex",
+   "honey": "#30130a",
+   "lid": "black",
+   "faces": [
+    4,
+    5,
+    0,
+    1,
+    2
+   ]
+  },
+  "raw-tulsi-honey": {
+   "mould": "hex",
+   "honey": "#5a1d08",
+   "lid": "black",
+   "faces": [
+    5,
+    0,
+    1
+   ]
+  },
+  "premium-sidr-honey": {
+   "mould": "hex",
+   "honey": "#8a4416",
+   "lid": "black",
+   "faces": [
+    5,
+    0,
+    1
+   ]
   }
  }
 }
