@@ -4,19 +4,21 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { useApp } from './ui.jsx'
 import data from '@assets/3d/jars.json'
 
-// Labels unwrapped from safahoney.com's face-on photos by tools/jar3d.py
+// Labels unwrapped from safahoney.com's product photos by tools/jar3d.py
 const tex = import.meta.glob('@assets/3d/*.webp', { eager: true, import: 'default' })
 const texUrl = name => Object.entries(tex).find(([k]) => k.endsWith(`/${name}.webp`))?.[1]
 
 export const has3D = slug => Boolean(data.jars[slug])
 
 const CORNER = 0.1      // rounding of the hexagon's vertical edges, as a fraction of its radius
+const HEX_CORNER = 0.05 // the same for the straight-sided 350 g jar, which has crisper edges
 const ARC = 6           // segments per rounded edge
+const FRAME = 3.15      // jars are framed as if this tall, so the smaller hex jar is drawn to the same scale
 
 /* Cross-section: a hexagon with a flat face towards the viewer (+z), corners rounded.
    Starts and ends in the middle of the back face so the seam is on a flat panel. */
-function section() {
-  const d = 1 - CORNER / Math.cos(Math.PI / 6)
+function section(corner = CORNER) {
+  const d = 1 - corner / Math.cos(Math.PI / 6)
   const pts = []
   const flat = Math.cos(Math.PI / 6) // a flat face's distance from the axis
   const push = a => pts.push({ a, x: flat * Math.sin(a), z: flat * Math.cos(a) })
@@ -26,7 +28,7 @@ function section() {
     const cx = d * Math.sin(mid), cz = d * Math.cos(mid)
     for (let s = 0; s <= ARC; s++) {
       const a = t0 + (s / ARC) * (Math.PI / 3)
-      pts.push({ a, x: cx + CORNER * Math.sin(a), z: cz + CORNER * Math.cos(a) })
+      pts.push({ a, x: cx + corner * Math.sin(a), z: cz + corner * Math.cos(a) })
     }
     if (k === 5) push(2 * Math.PI) // middle of the front face
   }
@@ -67,8 +69,63 @@ function bodyGeometry(height) {
   return geo
 }
 
-/* Screw-top lid: a lathe with a rounded top edge, its side knurled with fine vertical ribs. */
-function lidGeometry(r, h) {
+/* The 350 g jar: a straight-sided hexagon that rounds off into the neck. `faces` lists the faces the
+   label covers, left to right (0 = front, counted clockwise seen from above); the label is one
+   texture wrapped round them between the heights in `band`. Material groups: 0 = honey, 1 = label. */
+function hexGeometry(faces) {
+  const sec = section(HEX_CORNER)
+  const [y0, y1] = data.hex.band
+  const prof = [[0, 0, 0], ...data.hex.profile, [data.hex.profile.at(-1)[0], 0, 1]]
+  const third = Math.PI / 3
+  const pos = []
+  for (const [py, pr, round] of prof) {
+    for (const p of sec) {
+      // towards the neck each point slides from the hexagon onto a circle
+      const k = pr * (1 - round + round / Math.hypot(p.x, p.z))
+      pos.push(p.x * k, py, p.z * k)
+    }
+  }
+  const n = sec.length, quads = []
+  for (let j = 0; j < prof.length - 1; j++) {
+    for (let i = 0; i < n - 1; i++) { const a = j * n + i; quads.push([a, a + 1, a + n + 1, a, a + n + 1, a + n]) }
+  }
+  // smooth normals from the shared vertices...
+  const smooth = new THREE.BufferGeometry()
+  smooth.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+  smooth.setIndex(quads.flat())
+  smooth.computeVertexNormals()
+  const nor = smooth.attributes.normal.array
+  smooth.dispose()
+  // ...then every quad gets its own vertices: two faces share a corner, but not a place on the label
+  const P = [], N = [], U = [], groups = [[], []]
+  quads.forEach((q, qi) => {
+    const j = Math.floor(qi / (n - 1)), i = qi % (n - 1)
+    const mid = Math.atan2(sec[i].x + sec[i + 1].x, sec[i].z + sec[i + 1].z)
+    const turn = Math.round(mid / third), slot = faces.indexOf(((turn % 6) + 6) % 6)
+    const label = slot >= 0 && prof[j][0] >= y0 - 1e-6 && prof[j + 1][0] <= y1 + 1e-6
+    for (const v of q) {
+      groups[label ? 1 : 0].push(P.length / 3)
+      P.push(pos[v * 3], pos[v * 3 + 1], pos[v * 3 + 2])
+      N.push(nor[v * 3], nor[v * 3 + 1], nor[v * 3 + 2])
+      // how far along its face this point is, measured on the sharp hexagon the label was unwrapped from
+      const d = Math.atan2(pos[v * 3], pos[v * 3 + 2]) - turn * third
+      const along = 0.5 + Math.tan(Math.atan2(Math.sin(d), Math.cos(d))) / (2 * Math.tan(Math.PI / 6))
+      U.push((Math.max(slot, 0) + Math.min(Math.max(along, 0), 1)) / faces.length, (pos[v * 3 + 1] - y0) / (y1 - y0))
+    }
+  })
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3))
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3))
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2))
+  const index = []
+  groups.forEach((g, m) => { geo.addGroup(index.length, g.length, m); index.push(...g) })
+  geo.setIndex(index)
+  return geo
+}
+
+/* Screw-top lid: a lathe with a rounded top edge, its side knurled with fine vertical ribs
+   (the hex jar's lug cap is smooth). */
+function lidGeometry(r, h, knurled = true) {
   const e = h * 0.18
   const pts = [[0, 0], [r * 0.97, 0], [r, e * 0.4], [r, h - e]]
   for (let s = 1; s <= 6; s++) { const a = (s / 6) * (Math.PI / 2); pts.push([r - e + e * Math.cos(a), h - e + e * Math.sin(a)]) }
@@ -77,7 +134,7 @@ function lidGeometry(r, h) {
   const p = geo.attributes.position
   for (let i = 0; i < p.count; i++) {
     const y = p.getY(i)
-    if (y < e * 0.5 || y > h - e) continue
+    if (!knurled || y < e * 0.5 || y > h - e) continue
     const k = 1 + 0.008 * Math.sign(Math.cos(Math.atan2(p.getX(i), p.getZ(i)) * 90))
     p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k)
   }
@@ -131,7 +188,7 @@ function draw(st, jar, camera, w, h, ctx) {
   ctx.drawImage(st.renderer.domElement, 0, st.h - h, w, h, 0, 0, w, h) // WebGL draws from the bottom-left
 }
 
-/* Model for one product, built once and kept (the four jars are small); any renderer can draw it. */
+/* Model for one product, built once and kept (the jars are small); any renderer can draw it. */
 const jars = new Map()
 function getJar(slug) {
   if (!jars.has(slug)) {
@@ -145,8 +202,9 @@ function getJar(slug) {
 
 function build(slug, onLoad) {
   const jar = data.jars[slug]
-  const H = data.shape.aspect * 2
-  const lidH = data.shape.lid.h * H
+  const hex = jar.mould === 'hex'
+  const H = hex ? data.hex.profile.at(-1)[0] : data.shape.aspect * 2
+  const lidH = hex ? data.hex.lid.h : data.shape.lid.h * H
   const loader = new THREE.TextureLoader()
   const label = name => {
     const t = loader.load(texUrl(name), onLoad)
@@ -160,12 +218,15 @@ function build(slug, onLoad) {
     emissive: honey, emissiveIntensity: 0.12, envMapIntensity: 1.1,
   })
   const paper = map => new THREE.MeshPhysicalMaterial({ map, roughness: 0.42, clearcoat: 0.55, clearcoatRoughness: 0.12, envMapIntensity: 0.7 })
-  const mats = [glass, paper(label(`${slug}-front`)), jar.back ? paper(label(`${slug}-back`)) : glass]
-  const gold = new THREE.MeshStandardMaterial({ color: '#c99a45', metalness: 1, roughness: 0.3, envMapIntensity: 1.25 })
+  const mats = hex ? [glass, paper(label(`${slug}-wrap`))]
+    : [glass, paper(label(`${slug}-front`)), jar.back ? paper(label(`${slug}-back`)) : glass]
+  const cap = jar.lid === 'black'
+    ? new THREE.MeshPhysicalMaterial({ color: '#141210', roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.2 })
+    : new THREE.MeshStandardMaterial({ color: '#c99a45', metalness: 1, roughness: 0.3, envMapIntensity: 1.25 })
 
   const group = new THREE.Group()
-  group.add(new THREE.Mesh(bodyGeometry(H), mats))
-  const lid = new THREE.Mesh(lidGeometry(data.shape.lid.r, lidH), gold)
+  group.add(new THREE.Mesh(hex ? hexGeometry(jar.faces) : bodyGeometry(H), mats))
+  const lid = new THREE.Mesh(hex ? lidGeometry(data.hex.lid.r, lidH, false) : lidGeometry(data.shape.lid.r, lidH), cap)
   lid.position.y = H - lidH * 0.04
   group.add(lid)
   group.position.y = -(H + lidH) / 2
@@ -230,7 +291,7 @@ export default function Jar3D({ slug, fallback, alt = '', interactive = true, tu
       const onTex = () => { dirty = true }
       jar.listeners.add(onTex)
       const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 100)
-      const dist = (jar.height * 0.62) / Math.tan(THREE.MathUtils.degToRad(10))
+      const dist = (Math.max(jar.height, FRAME) * 0.62) / Math.tan(THREE.MathUtils.degToRad(10))
       camera.position.set(0, dist * 0.16, dist)
       camera.lookAt(0, 0, 0)
 

@@ -18,7 +18,7 @@ async function open(page, hash = '') {
 test('home shows the hero carousel with every jar', async ({ page }) => {
   await open(page)
   await expect(page).toHaveTitle(/Safa Honey/)
-  await expect(page.locator('.cjar')).toHaveCount(7)
+  await expect(page.locator('.cjar')).toHaveCount(11)
   await expect(page.locator('.rim-text')).toContainText('UNHEATED')
   await expect(page.locator('.hero-foot')).toContainText('Scroll to discover')
 })
@@ -71,7 +71,7 @@ test('menu opens, navigates, and back returns home', async ({ page }) => {
   await expect(page.locator('#menu')).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Raw Acacia Honey')
   await page.goBack()
-  await expect(page.locator('.cjar')).toHaveCount(7, { timeout: 5_000 })
+  await expect(page.locator('.cjar')).toHaveCount(11, { timeout: 5_000 })
 })
 
 test('pressing Back during the page transition still lands on the right page', async ({ page }) => {
@@ -80,13 +80,13 @@ test('pressing Back during the page transition still lands on the right page', a
   await page.waitForTimeout(300) // curtain is still rising
   await page.goBack()
   await expect(page).not.toHaveURL(/#premium-sidr-honey/)
-  await expect(page.locator('.cjar')).toHaveCount(7, { timeout: 8_000 })
+  await expect(page.locator('.cjar')).toHaveCount(11, { timeout: 8_000 })
   await expect(page.locator('.ptitle')).toHaveCount(0)
 })
 
 test('unknown hash falls back to the home page', async ({ page }) => {
   await open(page, '#not-a-honey')
-  await expect(page.locator('.cjar')).toHaveCount(7)
+  await expect(page.locator('.cjar')).toHaveCount(11)
 })
 
 test('page never scrolls sideways', async ({ page }) => {
@@ -113,21 +113,23 @@ test.describe('reduced motion', () => {
   test('content is reachable without smooth scrolling', async ({ page }) => {
     await open(page)
     expect(await page.evaluate(() => document.documentElement.classList.contains('lenis'))).toBe(false)
-    await page.locator('#pantry').scrollIntoViewIfNeeded()
-    await expect(page.locator('#pantry .pcard')).toHaveCount(7)
+    await page.locator('#raw-honey').scrollIntoViewIfNeeded()
+    await expect(page.locator('#raw-honey .pcard')).toHaveCount(10)
+    await expect(page.locator('#pantry .pcard')).toHaveCount(1)
   })
 })
 
-test('on phones the pantry is a swipeable row of cards', async ({ page, isMobile }) => {
+test('on phones the raw honeys are a swipeable row of cards', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phone layout only')
   await open(page)
-  const row = page.locator('#pantry .pgrid')
+  const row = page.locator('#raw-honey .pgrid')
   await row.scrollIntoViewIfNeeded()
   const { scrollW, clientW } = await row.evaluate(el => ({ scrollW: el.scrollWidth, clientW: el.clientWidth }))
   expect(scrollW).toBeGreaterThan(clientW * 3)
   await row.evaluate(el => el.scrollBy({ left: el.clientWidth, behavior: 'instant' }))
   await expect.poll(() => row.evaluate(el => el.scrollLeft)).toBeGreaterThan(100)
-  await expect(page.locator('#pantry .swipe-hint')).toBeVisible()
+  await expect(page.locator('#raw-honey .swipe-hint')).toBeVisible()
+  await expect(page.locator('#pantry .swipe-hint')).toHaveCount(0) // one card: nothing to swipe to
 })
 
 test('jars with photos from every side turn in 3D; the others keep their photo', async ({ page }) => {
@@ -142,15 +144,30 @@ test('jars with photos from every side turn in 3D; the others keep their photo',
   await page.mouse.move(box.x + box.width / 2 + 150, box.y + box.height / 2, { steps: 8 })
   await page.mouse.up()
 
-  await page.goto('./#premium-sidr-honey')
+  await page.goto('./#wild-honey-family-pack')
   await expect(page.locator('.pjar img')).toBeVisible({ timeout: 5_000 })
   await expect(page.locator('.pjar canvas')).toHaveCount(0)
 })
 
+test('the raw honey section lists every raw honey, and a 350 g hex jar turns in 3D', async ({ page }) => {
+  await open(page)
+  const cards = page.locator('#raw-honey .pcard')
+  await expect(cards).toHaveCount(10)
+  for (const n of ['Raw Borage Honey', 'Raw Tulsi Honey', 'Raw White Honey', 'Raw Black Forest Honey']) await expect(cards.filter({ hasText: n })).toHaveCount(1)
+  await expect(page.locator('#pantry .pcard')).toContainText('Apple Cider Vinegar')
+
+  await page.goto('./#raw-borage-honey')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Raw Borage Honey', { timeout: 5_000 })
+  await expect(page.locator('.facts')).toContainText('₹850')
+  await expect(page.locator('.pjar .jar3d.live canvas')).toBeVisible({ timeout: 15_000 })
+})
+
 test('home carousel shows the 3D jars, and clicking one still opens its page', async ({ page }) => {
   await open(page)
+  // only the jars near the centre slot are set up: forest, acacia and sidr ahead, black forest behind
   await expect(page.locator('.cjar .jar3d.live canvas')).toHaveCount(4, { timeout: 15_000 })
-  await expect(page.locator('.cjar img')).toHaveCount(3) // the photos the models replaced are gone
+  await expect(page.locator('.cjar .jar3d.live img')).toHaveCount(0) // the photos the models replaced are gone
+  await expect(page.locator('.cjar .jar3d:not(.live) img')).toHaveCount(5) // the rest wait as photos
   // a real pointer click on the canvas of the jar in the centre slot (Raw Forest Honey)
   const box = await page.locator('.cjar').first().locator('canvas').boundingBox()
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
