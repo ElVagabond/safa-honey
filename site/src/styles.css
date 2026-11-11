@@ -149,7 +149,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pjar img { height: min(60vh, 640px); width: auto; max-width: none; filter: drop-shadow(0 40px 40px rgba(59, 15, 29, .3)) }
 .jar3d { height: min(78vh, 820px); aspect-ratio: .8; margin-bottom: 6vh; cursor: grab; touch-action: pan-y; filter: drop-shadow(0 40px 40px rgba(59, 15, 29, .3)) }
 .jar3d.grabbing { cursor: grabbing }
-.jar3d canvas { display: block; width: 100%; height: 100% }
+.jar3d { position: relative }
+.jar3d canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .5s }
+.jar3d.live canvas { opacity: 1 }
+/* the photo shown until the model's first frame, framed like the model (about 80% of the height) */
+.jar3d .jar3d-poster { position: absolute; left: 50%; top: 52.5%; translate: -50% -50%; height: 82.5%; width: auto; max-width: none; filter: none }
 .pinfo { position: relative; z-index: 3; background: var(--cream); padding: clamp(70px, 9vw, 130px) var(--gut) clamp(40px, 6vw, 80px); display: grid; gap: 28px }
 .pdesc { max-width: 52ch; margin: 0 auto; text-align: center; color: var(--wine); font-size: clamp(17px, 1.4vw, 20px); line-height: 1.6 }
 .facts { margin-top: clamp(40px, 6vw, 80px); display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; border-top: 1px solid var(--line) }

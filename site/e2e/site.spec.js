@@ -132,8 +132,9 @@ test('on phones the pantry is a swipeable row of cards', async ({ page, isMobile
 
 test('jars with photos from every side turn in 3D; the others keep their photo', async ({ page }) => {
   await open(page, '#raw-wild-honey')
-  const jar = page.locator('.pjar .jar3d canvas')
-  await expect(jar).toBeVisible()
+  // the model replaces the photo once the page has settled
+  const jar = page.locator('.pjar .jar3d.live canvas')
+  await expect(jar).toBeVisible({ timeout: 15_000 })
   await expect(jar).toHaveAttribute('aria-label', /Raw Wild Honey.*3D/)
   const box = await jar.boundingBox()
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
@@ -148,8 +149,8 @@ test('jars with photos from every side turn in 3D; the others keep their photo',
 
 test('home carousel shows the 3D jars, and clicking one still opens its page', async ({ page }) => {
   await open(page)
-  await expect(page.locator('.cjar .jar3d canvas')).toHaveCount(4)
-  await expect(page.locator('.cjar img')).toHaveCount(3)
+  await expect(page.locator('.cjar .jar3d.live canvas')).toHaveCount(4, { timeout: 15_000 })
+  await expect(page.locator('.cjar img')).toHaveCount(3) // the photos the models replaced are gone
   // a real pointer click on the canvas of the jar in the centre slot (Raw Forest Honey)
   const box = await page.locator('.cjar').first().locator('canvas').boundingBox()
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)

@@ -86,8 +86,8 @@ function lidGeometry(r, h) {
 }
 
 /* A renderer plus the lit scene jars are shown in. Throws without WebGL. */
-function makeStage(canvas) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
+function makeStage() {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
   renderer.setPixelRatio(1)
   renderer.toneMapping = THREE.NeutralToneMapping
   renderer.toneMappingExposure = 1.05
@@ -105,9 +105,10 @@ function makeStage(canvas) {
   return { renderer, scene, w: 0, h: 0 }
 }
 
-/* The carousel shows up to four jars at once. Rather than a WebGL context each, they share one
-   offscreen stage: each jar is drawn into it and copied onto the jar's own 2D canvas. Copying
-   costs a GPU read-back, so carousel jars only redraw when they turn. */
+/* One stage (WebGL context, lighting, compiled shaders) for the whole page, made on first use.
+   The product page's jar borrows its canvas and draws straight onto it; the carousel's jars, up
+   to four at once, are each drawn into it and copied onto their own 2D canvas. Copying costs a
+   GPU read-back, so carousel jars only redraw when they turn. */
 let shared = null
 function getShared() {
   if (shared === null) { try { shared = makeStage() } catch { shared = false } }
@@ -177,114 +178,158 @@ function build(slug, onLoad) {
  * A jar in 3D. Falls back to the photo without WebGL.
  * interactive (product page): turns slowly on its own, turns further as the page scrolls,
  *   follows the pointer a little and can be spun by dragging (with inertia).
- *   It has its own WebGL context, drawing straight to its canvas.
- * otherwise (home carousel): turned by the `turn` motion value, drawn through the shared stage,
- *   only once `play` is true; clicks go through to the surrounding button.
+ * otherwise (home carousel): turned by the `turn` motion value; clicks go through to the
+ *   surrounding button.
+ *
+ * Cost control, so the 3D never holds up the page:
+ * - The jar's photo shows first. WebGL is set up only once `play` is true, the page has settled
+ *   (the loader has gone and no page curtain is moving) and the browser is idle; the model then
+ *   fades in over the photo, facing front as the photo does.
+ * - Each jar measures what a draw costs and waits ~3x that long before the next, so the 3D takes
+ *   at most about a quarter of the page's time. A draw's cost is the longer of the render call and
+ *   the frame that follows it: with software WebGL most of the work is putting the canvas on
+ *   screen, which the render call never sees. On a GPU both are tiny and the jar runs at 60 fps;
+ *   on a weak device it turns in fewer, larger steps and the page stays responsive. A jar that is
+ *   still costly after a few draws also drops to 1 device pixel per CSS pixel.
  */
 export default function Jar3D({ slug, fallback, alt = '', interactive = true, turn, play = true, className = '' }) {
   const host = useRef(null)
   const [failed, setFailed] = useState(false)
-  const { setCursor } = useApp()
+  const [live, setLive] = useState(false) // the first 3D frame is drawn: the photo can go
+  const { setCursor, settled } = useApp()
+  const go = play && settled
+  const [started, setStarted] = useState(false) // stays on once running, even while a later curtain moves
 
   useEffect(() => {
-    const el = host.current
-    if (!play) return
-    const canvas = document.createElement('canvas')
-    let st, ctx = null
-    try {
-      if (interactive) st = makeStage(canvas)
-      else { st = getShared(); if (!st) throw new Error('no WebGL'); ctx = canvas.getContext('2d') }
-    } catch { setFailed(true); return }
-    el.appendChild(canvas)
-    if (alt) { canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', alt) }
-    else canvas.setAttribute('aria-hidden', 'true')
+    if (!go || started) return
+    const idle = window.requestIdleCallback ?? (f => setTimeout(f, 50))
+    const cancelIdle = window.cancelIdleCallback ?? clearTimeout
+    const id = idle(() => setStarted(true), { timeout: 1000 })
+    return () => cancelIdle(id)
+  }, [go, started])
 
-    let dirty = true // redraw only when the pose changes, the size changes or a label arrives
-    const jar = getJar(slug)
-    const onTex = () => { dirty = true }
-    jar.listeners.add(onTex)
-    const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 100)
-    const dist = (jar.height * 0.62) / Math.tan(THREE.MathUtils.degToRad(10))
-    camera.position.set(0, dist * 0.16, dist)
-    camera.lookAt(0, 0, 0)
+  useEffect(() => {
+    if (!started) return
+    const stop = start()
+    return () => { stop(); setLive(false) }
 
-    let W = 0, H = 0
-    const resize = () => {
-      const { width, height } = el.getBoundingClientRect()
-      if (!width || !height) return
-      const dpr = Math.min(devicePixelRatio, interactive ? 2 : 1.5)
-      W = Math.round(width * dpr); H = Math.round(height * dpr)
-      if (ctx) { canvas.width = W; canvas.height = H }
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
-      dirty = true
-    }
-    const ro = new ResizeObserver(resize)
-    ro.observe(el)
-    resize()
+    function start() {
+      const el = host.current
+      const st = getShared()
+      if (!st) { setFailed(true); return () => {} }
+      const direct = interactive && !st.borrowed
+      const canvas = direct ? st.renderer.domElement : document.createElement('canvas')
+      const ctx = direct ? null : canvas.getContext('2d')
+      if (direct) st.borrowed = true
+      el.appendChild(canvas)
+      if (alt) { canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', alt) }
+      else canvas.setAttribute('aria-hidden', 'true')
 
-    // spin state: own angle (idle + drag + inertia) plus the scroll position
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    let angle = interactive ? -0.5 : 0, vel = 0, drag = null, tiltX = 0, tiltY = 0, aimX = 0, aimY = 0
-    let pose = ''
-    const down = e => { drag = { x: e.clientX, t: performance.now() }; vel = 0; el.setPointerCapture(e.pointerId); el.classList.add('grabbing') }
-    const move = e => {
-      const b = el.getBoundingClientRect()
-      aimX = ((e.clientY - b.top) / b.height - 0.5) * 0.25
-      aimY = ((e.clientX - b.left) / b.width - 0.5) * 0.3
-      if (!drag) return
-      const now = performance.now(), dx = e.clientX - drag.x
-      angle += dx * 0.012
-      vel = (dx * 0.012) / Math.max(now - drag.t, 1) * 1000
-      drag = { x: e.clientX, t: now }
-    }
-    const up = () => { drag = null; el.classList.remove('grabbing') }
-    const leave = () => { aimX = aimY = 0 }
-    const events = interactive ? [['pointerdown', down], ['pointermove', move], ['pointerup', up], ['pointercancel', up], ['pointerleave', leave]] : []
-    events.forEach(([n, f]) => el.addEventListener(n, f))
+      let dirty = true // redraw only when the pose changes, the size changes or a label arrives
+      const jar = getJar(slug)
+      const onTex = () => { dirty = true }
+      jar.listeners.add(onTex)
+      const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 100)
+      const dist = (jar.height * 0.62) / Math.tan(THREE.MathUtils.degToRad(10))
+      camera.position.set(0, dist * 0.16, dist)
+      camera.lookAt(0, 0, 0)
 
-    let visible = true, raf = 0, last = performance.now()
-    const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) { last = performance.now(); raf = requestAnimationFrame(frame) } })
-    io.observe(el)
-    function frame(now) {
-      raf = 0
-      const dt = Math.min((now - last) / 1000, 0.05)
-      last = now
-      if (!drag) {
-        angle += vel * dt
-        vel *= Math.pow(0.04, dt)
-        if (!reduce && interactive) angle += 0.35 * dt
+      let W = 0, H = 0, lowPower = false
+      const resize = () => {
+        const { width, height } = el.getBoundingClientRect()
+        if (!width || !height) return
+        const dpr = lowPower ? 1 : Math.min(devicePixelRatio, interactive ? 2 : 1.5)
+        W = Math.round(width * dpr); H = Math.round(height * dpr)
+        if (ctx) { canvas.width = W; canvas.height = H }
+        camera.aspect = width / height
+        camera.updateProjectionMatrix()
+        dirty = true
       }
-      tiltX += (aimX - tiltX) * Math.min(dt * 5, 1)
-      tiltY += (aimY - tiltY) * Math.min(dt * 5, 1)
-      const t = turn ? turn.get() : 0
-      const rx = tiltX, ry = angle + tiltY + t + (interactive ? scrollY * 0.004 : 0)
-      const py = interactive && !reduce ? Math.sin(now / 900) * 0.03 : 0
-      const key = `${rx.toFixed(4)} ${ry.toFixed(4)} ${py.toFixed(4)}`
-      if (W && (dirty || key !== pose)) {
-        jar.pivot.rotation.set(rx, ry, 0)
-        jar.pivot.position.y = py
-        draw(st, jar, camera, W, H, ctx)
-        dirty = false
-        pose = key
-      }
-      if (visible) raf = requestAnimationFrame(frame)
-    }
-    raf = requestAnimationFrame(frame)
+      const ro = new ResizeObserver(resize)
+      ro.observe(el)
+      resize()
 
-    return () => {
-      cancelAnimationFrame(raf); io.disconnect(); ro.disconnect()
-      events.forEach(([n, f]) => el.removeEventListener(n, f))
-      jar.listeners.delete(onTex)
-      if (interactive) { st.scene.environment.dispose(); st.renderer.dispose() }
-      canvas.remove()
+      // spin state: own angle (idle + drag + inertia) plus the scroll position
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+      let angle = 0, vel = 0, drag = null, tiltX = 0, tiltY = 0, aimX = 0, aimY = 0
+      let pose = ''
+      const down = e => { drag = { x: e.clientX, t: performance.now() }; vel = 0; el.setPointerCapture(e.pointerId); el.classList.add('grabbing') }
+      const move = e => {
+        const b = el.getBoundingClientRect()
+        aimX = ((e.clientY - b.top) / b.height - 0.5) * 0.25
+        aimY = ((e.clientX - b.left) / b.width - 0.5) * 0.3
+        if (!drag) return
+        const now = performance.now(), dx = e.clientX - drag.x
+        angle += dx * 0.012
+        vel = (dx * 0.012) / Math.max(now - drag.t, 1) * 1000
+        drag = { x: e.clientX, t: now }
+      }
+      const up = () => { drag = null; el.classList.remove('grabbing') }
+      const leave = () => { aimX = aimY = 0 }
+      const events = interactive ? [['pointerdown', down], ['pointermove', move], ['pointerup', up], ['pointercancel', up], ['pointerleave', leave]] : []
+      events.forEach(([n, f]) => el.addEventListener(n, f))
+
+      let visible = true, raf = 0, last = performance.now()
+      let draws = 0, cost = 0, next = 0, drewAt = 0, cpu = 0 // draw budget, see above
+      const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) { last = performance.now(); raf = requestAnimationFrame(frame) } })
+      io.observe(el)
+      function frame(now) {
+        raf = 0
+        const ms = now - last, dt = Math.min(ms / 1000, 0.05)
+        last = now
+        if (!drag) {
+          angle += vel * dt
+          vel *= Math.pow(0.04, dt)
+          if (!reduce && interactive) angle += 0.35 * dt
+        }
+        tiltX += (aimX - tiltX) * Math.min(dt * 5, 1)
+        tiltY += (aimY - tiltY) * Math.min(dt * 5, 1)
+        const t = turn ? turn.get() : 0
+        const rx = tiltX, ry = angle + tiltY + t + (interactive ? scrollY * 0.004 : 0)
+        const py = interactive && !reduce ? Math.sin(now / 900) * 0.03 : 0
+        const key = `${rx.toFixed(4)} ${ry.toFixed(4)} ${py.toFixed(4)}`
+        if (drewAt) {
+          // the frame after a draw shows what it really cost (the first draw compiles shaders and
+          // uploads labels: a one-off, so it isn't counted)
+          const c = Math.max(cpu, ms - 1000 / 60)
+          drewAt = 0
+          if (draws > 1) {
+            cost = draws === 2 ? c : cost * 0.7 + c * 0.3
+            next = now + Math.min(cost * 3, 600)
+            if (!lowPower && draws > 4 && cost > 30) { lowPower = true; resize() }
+          }
+        }
+        if (W && now >= next && (dirty || key !== pose)) {
+          jar.pivot.rotation.set(rx, ry, 0)
+          jar.pivot.position.y = py
+          const t0 = performance.now()
+          draw(st, jar, camera, W, H, ctx)
+          cpu = performance.now() - t0
+          drewAt = now
+          if (draws++ === 0) setLive(true)
+          dirty = false
+          pose = key
+        }
+        if (visible) raf = requestAnimationFrame(frame)
+      }
+      raf = requestAnimationFrame(frame)
+
+      return () => {
+        cancelAnimationFrame(raf); io.disconnect(); ro.disconnect()
+        events.forEach(([n, f]) => el.removeEventListener(n, f))
+        jar.listeners.delete(onTex)
+        canvas.remove()
+        if (direct) { st.borrowed = false; canvas.removeAttribute('role'); canvas.removeAttribute('aria-label'); canvas.removeAttribute('aria-hidden') }
+      }
     }
-  }, [slug, alt, interactive, turn, play])
+  }, [slug, alt, interactive, turn, started])
 
   if (failed) return <img src={fallback} alt={alt} draggable="false" />
   return (
-    <div className={`jar3d ${className}`} ref={host}
+    <div className={`jar3d ${live ? 'live' : ''} ${className}`} ref={host}
       onMouseEnter={interactive ? () => setCursor('Drag to turn') : undefined}
-      onMouseLeave={interactive ? () => setCursor(null) : undefined} />
+      onMouseLeave={interactive ? () => setCursor(null) : undefined}>
+      {!live && <img className="jar3d-poster" src={fallback} alt={alt} draggable="false" />}
+    </div>
   )
 }
