@@ -43,6 +43,9 @@ export default function App() {
   const lenis = useRef(null)
   const [cover, animateCover] = useAnimate()
   const busy = useRef(false)
+  // true once the loader has finished leaving and no page curtain is moving: heavy work (the 3D jars) waits for it
+  const [introGone, setIntroGone] = useState(false)
+  const [moving, setMoving] = useState(false)
   const [covered, setCovered] = useState(false)
 
   // Lenis smooth scroll driven by GSAP's ticker so ScrollTrigger and framer's useScroll stay in sync
@@ -68,6 +71,7 @@ export default function App() {
   const swap = useCallback(async next => {
     if (busy.current) return
     busy.current = true
+    setMoving(true)
     setOpen(false)
     await animateCover(cover.current, { clipPath: ['inset(100% 0 0 0)', 'inset(0% 0 0 0)'] }, { duration: 0.8, ease: EASE })
     setCovered(true)
@@ -79,6 +83,7 @@ export default function App() {
     setCovered(false)
     await animateCover(cover.current, { clipPath: ['inset(0 0 0% 0)', 'inset(0 0 100% 0)'] }, { duration: 0.9, ease: EASE })
     busy.current = false
+    setMoving(false)
     // the visitor may have pressed Back/Forward while the curtain was moving: catch up with the URL
     const latest = parse()
     if (latest !== next) swap(latest)
@@ -106,8 +111,8 @@ export default function App() {
   const slug = route || null
 
   return (
-    <AppCtx.Provider value={{ navigate, lenis, setCursor, cart, add }}>
-      <AnimatePresence>{loading && <Loader key="loader" onDone={done} />}</AnimatePresence>
+    <AppCtx.Provider value={{ navigate, lenis, setCursor, cart, add, settled: introGone && !moving }}>
+      <AnimatePresence onExitComplete={() => setIntroGone(true)}>{loading && <Loader key="loader" onDone={done} />}</AnimatePresence>
       <Header open={open} setOpen={setOpen} />
       <Menu open={open} close={() => setOpen(false)} />
       <main key={route}>

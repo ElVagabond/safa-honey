@@ -69,7 +69,7 @@ export default function Product({ slug, ready }) {
         <motion.div className="pjar" style={{ y: jarY, rotate: jarR, scale: jarS }}>
           {has3D(p.slug) ? (
             <motion.div initial={{ y: '60vh' }} animate={ready ? { y: '0vh' } : undefined} transition={{ duration: 1.6, ease: EASE_OUT, delay: 0.3 }}>
-              <Jar3D slug={p.slug} fallback={p.img} alt={`A jar of ${p.n}, shown in 3D — drag to turn it`} />
+              <Jar3D slug={p.slug} fallback={p.img} alt={`A jar of ${p.n}, shown in 3D — drag to turn it`} play={ready} />
             </motion.div>
           ) : (
             <motion.img src={p.img} alt={`A jar of ${p.n}`}
